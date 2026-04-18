@@ -32,6 +32,8 @@ functions/lib/
 firebase-debug.log
 firestore-debug.log
 ui-debug.log
+google-services.json
+app/google-services.json
 
 # Editor
 .vscode/
