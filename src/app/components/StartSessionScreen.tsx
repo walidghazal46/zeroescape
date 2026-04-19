@@ -7,6 +7,7 @@ import { USER_GOALS } from '../../core/types';
 
 const MIN_DURATION = 1;
 const MAX_DURATION = 480;
+const DURATION_PRESETS = [15, 30, 45, 60, 90, 120, 180, 240, 480];
 
 const modes = [
   { id: 'study', icon: BookOpen, label: 'دراسة', duration: 90, color: 'from-blue-500 to-cyan-500' },
@@ -31,6 +32,16 @@ export function StartSessionScreen() {
   const [webFilter, setWebFilter] = useState(webProtectionEnabled);
 
   const selectedModeData = modes.find((m) => m.id === selectedMode) ?? modes[0];
+
+  const formatDuration = (value: number) => {
+    if (value >= 60) {
+      const hours = Math.floor(value / 60);
+      const minutes = value % 60;
+      return `${hours}س${minutes > 0 ? ` ${minutes}د` : ''}`;
+    }
+
+    return `${value}د`;
+  };
 
   const updateDuration = (value: number) => {
     const nextDuration = Math.min(MAX_DURATION, Math.max(MIN_DURATION, value));
@@ -109,39 +120,71 @@ export function StartSessionScreen() {
         {/* ── Duration slider ───────────────────────────────────────────────── */}
         <div>
           <p className="text-slate-500 text-xs mb-3">المدة (دقيقة)</p>
-          <div className="bg-slate-900 border border-slate-800 rounded-xl p-4">
-            <div className="flex items-center justify-between gap-3 mb-4">
-              <div className={`text-2xl font-bold bg-gradient-to-r ${selectedModeData.color} bg-clip-text text-transparent tabular-nums`}>
-                {duration >= 60
-                  ? `${Math.floor(duration / 60)}h ${duration % 60 > 0 ? `${duration % 60}m` : ''}`
-                  : `${duration}m`}
+          <div className="bg-slate-900 border border-slate-800 rounded-2xl p-4 space-y-4 shadow-[0_18px_40px_rgba(0,0,0,0.22)]">
+            <div className="rounded-2xl border border-slate-800 bg-slate-950/70 px-4 py-4">
+              <div className="flex items-center justify-between gap-3 mb-4">
+                <div>
+                  <p className="text-slate-500 text-[11px] mb-1">المدة المحددة</p>
+                  <div className={`text-3xl font-bold bg-gradient-to-r ${selectedModeData.color} bg-clip-text text-transparent tabular-nums`}>
+                    {formatDuration(duration)}
+                  </div>
+                </div>
+                <div className="flex items-center gap-2 bg-slate-900 border border-slate-800 rounded-xl px-3 py-2">
+                  <input
+                    type="number"
+                    min={MIN_DURATION}
+                    max={MAX_DURATION}
+                    value={duration}
+                    onChange={(e) => updateDuration(Number(e.target.value || MIN_DURATION))}
+                    className="w-16 bg-transparent text-white text-center text-lg font-semibold outline-none [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+                  />
+                  <span className="text-slate-500 text-xs">دقيقة</span>
+                </div>
               </div>
-              <div className="flex items-center gap-2 bg-slate-950 border border-slate-800 rounded-xl px-3 py-2">
-                <input
-                  type="number"
-                  min={MIN_DURATION}
-                  max={MAX_DURATION}
-                  value={duration}
-                  onChange={(e) => updateDuration(Number(e.target.value || MIN_DURATION))}
-                  className="w-16 bg-transparent text-white text-center text-lg font-semibold outline-none [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
-                />
-                <span className="text-slate-500 text-xs">دقيقة</span>
+              <input
+                type="range"
+                min={MIN_DURATION}
+                max={MAX_DURATION}
+                step="1"
+                value={duration}
+                onChange={(e) => updateDuration(Number(e.target.value))}
+                className="w-full accent-white"
+              />
+              <div className="flex items-center justify-between mt-3 text-[11px] text-slate-500">
+                <span>1 دقيقة</span>
+                <span>تجربة سريعة أو جلسة طويلة</span>
+                <span>8 ساعات</span>
               </div>
             </div>
-            <input
-              type="range"
-              min={MIN_DURATION}
-              max={MAX_DURATION}
-              step="1"
-              value={duration}
-              onChange={(e) => updateDuration(Number(e.target.value))}
-              className="w-full"
-            />
-            <div className="flex items-center justify-between mt-3 text-[11px] text-slate-500">
-              <span>1 دقيقة</span>
-              <span>اختر أي مدة للتجربة أو التركيز الطويل</span>
-              <span>8 ساعات</span>
+
+            <div>
+              <div className="flex items-center justify-between mb-2">
+                <p className="text-slate-400 text-xs">اختصارات سريعة</p>
+                <p className="text-slate-600 text-[11px]">من ربع ساعة حتى 8 ساعات</p>
+              </div>
+              <div className="grid grid-cols-3 gap-2">
+                {DURATION_PRESETS.map((preset) => {
+                  const isSelected = duration === preset;
+                  return (
+                    <button
+                      key={preset}
+                      type="button"
+                      onClick={() => updateDuration(preset)}
+                      className={`rounded-xl border px-3 py-3 text-sm font-medium transition active:scale-[0.98] ${
+                        isSelected
+                          ? `bg-gradient-to-r ${selectedModeData.color} border-transparent text-white shadow-lg shadow-black/20`
+                          : 'bg-slate-950/70 border-slate-800 text-slate-300 hover:border-slate-700 hover:bg-slate-950'
+                      }`}
+                    >
+                      {formatDuration(preset)}
+                    </button>
+                  );
+                })}
+              </div>
             </div>
+            <p className="text-slate-500 text-[11px] leading-relaxed text-center">
+              يمكنك اختيار مدة دقيقة للتجربة، أو استخدام الاختصارات للانتقال السريع بين 15 دقيقة، 30 دقيقة، ساعة، وحتى 8 ساعات.
+            </p>
           </div>
         </div>
 
