@@ -39,6 +39,8 @@ public class MainActivity extends AppCompatActivity {
     private ComponentName adminComponent;
     private GoogleSignInClient googleSignInClient;
     private ActivityResultLauncher<Intent> googleSignInLauncher;
+    private ActivityResultLauncher<Intent> vpnPermissionLauncher;
+    private ActivityResultLauncher<Intent> deviceAdminLauncher;
 
     /** Bridge exposed to JavaScript as window.Android */
     private class AndroidBridge {
@@ -78,24 +80,41 @@ public class MainActivity extends AppCompatActivity {
         @JavascriptInterface
         public void openDeviceAdminSettings() {
             runOnUiThread(() -> {
-                Intent intent = new Intent(DevicePolicyManager.ACTION_ADD_DEVICE_ADMIN);
-                intent.putExtra(DevicePolicyManager.EXTRA_DEVICE_ADMIN, adminComponent);
-                intent.putExtra(DevicePolicyManager.EXTRA_ADD_EXPLANATION,
-                    "ZeroEscape يحتاج صلاحيات مدير الجهاز للحماية من الحذف غير المصرح به");
-                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                startActivity(intent);
+                try {
+                    Intent intent = new Intent(DevicePolicyManager.ACTION_ADD_DEVICE_ADMIN);
+                    intent.putExtra(DevicePolicyManager.EXTRA_DEVICE_ADMIN, adminComponent);
+                    intent.putExtra(DevicePolicyManager.EXTRA_ADD_EXPLANATION,
+                        "ZeroEscape يحتاج صلاحيات مدير الجهاز للحماية من الحذف غير المصرح به");
+                    deviceAdminLauncher.launch(intent);
+                } catch (Exception e) {
+                    Toast.makeText(MainActivity.this,
+                        "تعذّر فتح إعدادات مدير الجهاز", Toast.LENGTH_SHORT).show();
+                }
             });
         }
 
         @JavascriptInterface
         public void openVpnSettings() {
             runOnUiThread(() -> {
-                Intent vpnIntent = VpnService.prepare(MainActivity.this);
-                if (vpnIntent != null) {
-                    vpnIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                    startActivity(vpnIntent);
-                } else {
-                    Toast.makeText(MainActivity.this, "VPN مفعّل بالفعل", Toast.LENGTH_SHORT).show();
+                try {
+                    // Request VPN permission for this app via proper ActivityResult
+                    Intent vpnIntent = VpnService.prepare(MainActivity.this);
+                    if (vpnIntent != null) {
+                        vpnPermissionLauncher.launch(vpnIntent);
+                    } else {
+                        // Already granted — open system VPN settings page
+                        startActivity(new Intent(Settings.ACTION_VPN_SETTINGS)
+                            .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK));
+                    }
+                } catch (Exception e) {
+                    // Fallback: open VPN settings directly
+                    try {
+                        startActivity(new Intent(Settings.ACTION_VPN_SETTINGS)
+                            .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK));
+                    } catch (Exception e2) {
+                        startActivity(new Intent(Settings.ACTION_WIRELESS_SETTINGS)
+                            .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK));
+                    }
                 }
             });
         }
@@ -103,21 +122,59 @@ public class MainActivity extends AppCompatActivity {
         @JavascriptInterface
         public void openBootSettings() {
             runOnUiThread(() -> {
-                try {
-                    Intent intent = new Intent();
-                    intent.setComponent(new ComponentName(
-                        "com.miui.securitycenter",
-                        "com.miui.permcenter.autostart.AutoStartManagementActivity"
-                    ));
-                    intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                    startActivity(intent);
-                } catch (Exception e) {
-                    // Fallback for non-MIUI devices
-                    startActivity(new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
-                        .setData(android.net.Uri.parse("package:" + getPackageName()))
-                        .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK));
+                // Try device-specific autostart settings in order
+                String pkg = getPackageName();
+                android.net.Uri pkgUri = android.net.Uri.parse("package:" + pkg);
+
+                Intent[] candidates = {
+                    // Xiaomi / MIUI
+                    makeIntent("com.miui.securitycenter",
+                        "com.miui.permcenter.autostart.AutoStartManagementActivity"),
+                    // Huawei / EMUI
+                    makeIntent("com.huawei.systemmanager",
+                        "com.huawei.systemmanager.startupmgr.ui.StartupNormalAppListActivity"),
+                    makeIntent("com.huawei.systemmanager",
+                        "com.huawei.systemmanager.optimize.process.ProtectActivity"),
+                    // OPPO / ColorOS
+                    makeIntent("com.coloros.safecenter",
+                        "com.coloros.privacypermissionsentry.PermissionTopActivity"),
+                    makeIntent("com.oppo.safe",
+                        "com.oppo.safe.permission.startup.StartupAppListActivity"),
+                    // Vivo / FuntouchOS
+                    makeIntent("com.vivo.permissionmanager",
+                        "com.vivo.permissionmanager.activity.BgStartUpManagerActivity"),
+                    // Samsung / OneUI
+                    makeIntent("com.samsung.android.lool",
+                        "com.samsung.android.sm.battery.ui.BatteryActivity"),
+                    // Realme
+                    makeIntent("com.realme.permissionmanager",
+                        "com.realme.permissionmanager.ui.AutostartAppListActivity"),
+                };
+
+                for (Intent intent : candidates) {
+                    if (intent == null) continue;
+                    try {
+                        startActivity(intent);
+                        return;
+                    } catch (Exception ignored) {}
                 }
+
+                // Universal fallback: App Details (user can find Battery/Autostart there)
+                startActivity(new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
+                    .setData(pkgUri)
+                    .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK));
             });
+        }
+
+        private Intent makeIntent(String packageName, String className) {
+            try {
+                getPackageManager().getPackageInfo(packageName, 0);
+                return new Intent()
+                    .setComponent(new ComponentName(packageName, className))
+                    .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            } catch (PackageManager.NameNotFoundException e) {
+                return null;
+            }
         }
 
         // ── Permission status checks ─────────────────────────────────────────────
@@ -245,6 +302,22 @@ public class MainActivity extends AppCompatActivity {
                 } catch (Exception e) {
                     emitGoogleSignInResult("error", "native_unknown_error");
                 }
+            }
+        );
+
+        // Launcher for VPN permission dialog
+        vpnPermissionLauncher = registerForActivityResult(
+            new ActivityResultContracts.StartActivityForResult(),
+            result -> {
+                // VPN permission granted or denied — result handled by JS re-check
+            }
+        );
+
+        // Launcher for Device Admin activation dialog
+        deviceAdminLauncher = registerForActivityResult(
+            new ActivityResultContracts.StartActivityForResult(),
+            result -> {
+                // Device admin enabled or declined — result handled by JS re-check
             }
         );
     }
