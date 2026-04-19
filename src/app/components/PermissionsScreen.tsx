@@ -16,6 +16,8 @@ declare global {
       isVpnPermissionGranted: () => boolean;
       startVpnBlocking: () => void;
       stopVpnBlocking: () => void;
+      startImmersiveMode: () => void;
+      stopImmersiveMode: () => void;
     };
   }
 }

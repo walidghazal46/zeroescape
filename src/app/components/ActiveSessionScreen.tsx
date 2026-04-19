@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { BookOpen, Briefcase, Moon, Settings, AlertCircle, EyeOff, Zap } from 'lucide-react';
+import { BookOpen, Briefcase, Moon, Settings, AlertCircle, EyeOff, Zap, ShieldCheck, Globe } from 'lucide-react';
 import { useSessionStore } from '../../store/sessionStore';
 
 const modeIcons = {
@@ -72,6 +72,23 @@ export function ActiveSessionScreen() {
     requestWakeLock();
     // Start DNS-based VPN to block harmful sites during session
     window.Android?.startVpnBlocking?.();
+    // Enter true immersive mode (hides status bar + notification shade pull)
+    window.Android?.startImmersiveMode?.();
+
+    // Block Android hardware back button
+    (window as Window & { onAndroidBack?: () => void }).onAndroidBack = () => {
+      incrementBlockedAttempt();
+      setShowWarning(true);
+      setTimeout(() => setShowWarning(false), 3000);
+    };
+
+    // Re-enter immersive mode when app returns from background (Home button)
+    (window as Window & { onAndroidResume?: () => void }).onAndroidResume = () => {
+      window.Android?.startImmersiveMode?.();
+      incrementBlockedAttempt();
+      setShowWarning(true);
+      setTimeout(() => setShowWarning(false), 3000);
+    };
 
     // Re-acquire wake lock if it gets released (e.g. tab hidden then shown)
     const handleVisibilityChange = () => {
@@ -113,6 +130,11 @@ export function ActiveSessionScreen() {
       if (document.fullscreenElement) document.exitFullscreen().catch(() => {});
       // Stop VPN blocking when session screen unmounts
       window.Android?.stopVpnBlocking?.();
+      // Restore normal UI
+      window.Android?.stopImmersiveMode?.();
+      // Restore Android back button behaviour
+      delete (window as Window & { onAndroidBack?: () => void }).onAndroidBack;
+      delete (window as Window & { onAndroidResume?: () => void }).onAndroidResume;
     };
   }, [requestFullscreen, requestWakeLock, releaseWakeLock, incrementBlockedAttempt]);
 
