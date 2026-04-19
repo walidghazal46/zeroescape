@@ -18,8 +18,9 @@ export function SplashScreen() {
         return;
       }
 
+      // Expired guest → send to login to encourage sign-up before subscribing
       if (user.type === 'guest' && isGuestExpired()) {
-        navigate('/subscription-required');
+        navigate('/login');
         return;
       }
 

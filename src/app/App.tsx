@@ -122,8 +122,47 @@ function MobileOnlyGuard({ children }: { children: ReactNode }) {
   );
 }
 
+function PaywallOverlay() {
+  const navigate = useNavigate();
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/75 backdrop-blur-sm px-6">
+      <div
+        dir="rtl"
+        className="w-full max-w-sm bg-slate-900 border border-slate-700 rounded-3xl p-7 text-center space-y-5"
+        style={{ boxShadow: '0 0 60px rgba(59,130,246,0.15)' }}
+      >
+        {/* glow */}
+        <div className="absolute inset-0 rounded-3xl pointer-events-none" style={{ background: 'radial-gradient(circle at 50% 0%, rgba(99,102,241,0.12), transparent 70%)' }} />
+        <div className="flex justify-center">
+          <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-500/20 to-violet-600/20 border border-blue-500/30 flex items-center justify-center">
+            <span className="text-3xl">👑</span>
+          </div>
+        </div>
+        <div>
+          <h2 className="text-white text-xl font-bold">انتهت فترة التجربة</h2>
+          <p className="text-slate-400 text-sm mt-2 leading-relaxed">
+            اشترك الآن للوصول الكامل لجميع ميزات ZeroEscape
+          </p>
+        </div>
+        <button
+          onClick={() => navigate('/subscription')}
+          className="w-full h-12 rounded-2xl bg-gradient-to-r from-blue-600 to-violet-600 text-white font-bold text-base shadow-lg shadow-blue-500/25 hover:shadow-blue-500/40 transition"
+        >
+          اشترك الآن
+        </button>
+        <button
+          onClick={() => navigate('/settings')}
+          className="w-full h-10 rounded-xl text-slate-500 text-sm hover:text-slate-400 transition"
+        >
+          الإعدادات
+        </button>
+      </div>
+    </div>
+  );
+}
+
 function ProtectedRoute({ children }: { children: ReactNode }) {
-  const { user, isGuestExpired, hasAccess } = useAuthStore();
+  const { user, hasAccess } = useAuthStore();
   const { onboardingCompleted } = usePreferencesStore();
 
   if (!user) {
@@ -135,18 +174,27 @@ function ProtectedRoute({ children }: { children: ReactNode }) {
     return <>{children}</>;
   }
 
-  // Check subscription / trial access
-  if (!hasAccess()) {
-    return <Navigate to="/subscription-required" replace />;
-  }
+  const expired = !hasAccess();
 
-  // Legacy guest expiry fallback
-  if (user.type === 'guest' && isGuestExpired()) {
-    return <Navigate to="/subscription-required" replace />;
+  // Expired guest → must register/login first, then subscribe
+  if (expired && user.type === 'guest') {
+    return <Navigate to="/login" replace />;
   }
 
   if (!onboardingCompleted) {
     return <Navigate to="/onboarding" replace />;
+  }
+
+  // Expired registered user → show screen blurred + paywall overlay
+  if (expired) {
+    return (
+      <div className="relative w-full h-screen overflow-hidden">
+        <div className="pointer-events-none select-none w-full h-full" style={{ filter: 'blur(4px)', opacity: 0.2 }}>
+          {children}
+        </div>
+        <PaywallOverlay />
+      </div>
+    );
   }
 
   return <>{children}</>;
