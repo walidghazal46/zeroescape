@@ -13,6 +13,9 @@ declare global {
       isUsageAccessGranted: () => boolean;
       isAccessibilityGranted: () => boolean;
       isDeviceAdminGranted: () => boolean;
+      isVpnPermissionGranted: () => boolean;
+      startVpnBlocking: () => void;
+      stopVpnBlocking: () => void;
     };
   }
 }
@@ -63,7 +66,7 @@ const buildPermissions = (): Permission[] => [
     title: 'حماية DNS / VPN',
     description: 'لتصفية المواقع الضارة',
     open: () => window.Android?.openVpnSettings(),
-    check: () => false, // VPN status not detectable from JS
+    check: () => window.Android?.isVpnPermissionGranted() ?? false,
     required: false,
   },
   {

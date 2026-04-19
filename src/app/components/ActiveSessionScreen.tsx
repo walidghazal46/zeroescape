@@ -66,10 +66,12 @@ export function ActiveSessionScreen() {
     }
   }, []);
 
-  // ── On mount: activate fullscreen + wake lock ──
+  // ── On mount: activate fullscreen + wake lock + start VPN blocking ──
   useEffect(() => {
     requestFullscreen();
     requestWakeLock();
+    // Start DNS-based VPN to block harmful sites during session
+    window.Android?.startVpnBlocking?.();
 
     // Re-acquire wake lock if it gets released (e.g. tab hidden then shown)
     const handleVisibilityChange = () => {
@@ -109,6 +111,8 @@ export function ActiveSessionScreen() {
       window.removeEventListener('beforeunload', handleBeforeUnload);
       releaseWakeLock();
       if (document.fullscreenElement) document.exitFullscreen().catch(() => {});
+      // Stop VPN blocking when session screen unmounts
+      window.Android?.stopVpnBlocking?.();
     };
   }, [requestFullscreen, requestWakeLock, releaseWakeLock, incrementBlockedAttempt]);
 

@@ -41,6 +41,7 @@ public class MainActivity extends AppCompatActivity {
     private ActivityResultLauncher<Intent> googleSignInLauncher;
     private ActivityResultLauncher<Intent> vpnPermissionLauncher;
     private ActivityResultLauncher<Intent> deviceAdminLauncher;
+    private boolean vpnServiceRunning = false;
 
     /** Bridge exposed to JavaScript as window.Android */
     private class AndroidBridge {
@@ -203,6 +204,50 @@ public class MainActivity extends AppCompatActivity {
         @JavascriptInterface
         public boolean isDeviceAdminGranted() {
             return devicePolicyManager.isAdminActive(adminComponent);
+        }
+
+        /** Returns true if the user has already granted VPN permission to this app. */
+        @JavascriptInterface
+        public boolean isVpnPermissionGranted() {
+            return VpnService.prepare(MainActivity.this) == null;
+        }
+
+        /** Returns true if ZeroEscapeVpnService is currently running. */
+        @JavascriptInterface
+        public boolean isVpnActive() {
+            return vpnServiceRunning;
+        }
+
+        /** Starts the DNS-blocking VPN (call at session start). */
+        @JavascriptInterface
+        public void startVpnBlocking() {
+            runOnUiThread(() -> {
+                Intent vpnPermIntent = VpnService.prepare(MainActivity.this);
+                if (vpnPermIntent != null) {
+                    // Permission not yet granted — request it first
+                    vpnPermissionLauncher.launch(vpnPermIntent);
+                    return;
+                }
+                Intent service = new Intent(MainActivity.this, ZeroEscapeVpnService.class);
+                service.setAction(ZeroEscapeVpnService.ACTION_START);
+                if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+                    startForegroundService(service);
+                } else {
+                    startService(service);
+                }
+                vpnServiceRunning = true;
+            });
+        }
+
+        /** Stops the DNS-blocking VPN (call at session end). */
+        @JavascriptInterface
+        public void stopVpnBlocking() {
+            runOnUiThread(() -> {
+                Intent service = new Intent(MainActivity.this, ZeroEscapeVpnService.class);
+                service.setAction(ZeroEscapeVpnService.ACTION_STOP);
+                startService(service);
+                vpnServiceRunning = false;
+            });
         }
 
         @JavascriptInterface
