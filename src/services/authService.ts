@@ -271,7 +271,7 @@ export const authService = {
     }
   },
 
-  signUpWithEmail: async (name: string, email: string, password: string): Promise<User> => {
+  signUpWithEmail: async (name: string, email: string, password: string, emergencyPin?: string): Promise<User> => {
     // Wrap Firebase Auth call with a timeout — on Android WebView it can hang
     const result = await Promise.race([
       createUserWithEmailAndPassword(auth, email, password),
@@ -298,6 +298,7 @@ export const authService = {
       subscriptionStatus: 'free',
       deviceId,
       createdAt: now,
+      ...(emergencyPin ? { emergencyPin } : {}),
     };
 
     // Write to Firestore in background — do NOT await so signup never hangs.

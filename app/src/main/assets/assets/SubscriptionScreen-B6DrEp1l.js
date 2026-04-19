@@ -1,4 +1,4 @@
-import{j as e}from"./vendor-ui-Cxe4J1D7.js";import{u as V,r as c}from"./vendor-react-CTSaywpw.js";import{d as Z,p as q,u as H,a as J,S as u,s as A}from"./index-CtEtzSzQ.js";import{C as K}from"./chevron-right-CsZCuQHV.js";import{S as Q}from"./settings-DpXdLdVU.js";import{C as W}from"./crown-DU_u_ZwA.js";import{c as E}from"./createLucideIcon-D6uLTmh6.js";import{C as P}from"./clock-BOj9idei.js";import{M}from"./mail-_v0JwLzt.js";import{A as X}from"./arrow-right-BC7BNqDk.js";import"./vendor-firebase-CW1UtntS.js";/**
+import{j as e}from"./vendor-ui-Cxe4J1D7.js";import{u as V,r as c}from"./vendor-react-CTSaywpw.js";import{d as Z,p as q,u as H,a as J,S as u,s as A}from"./index-BpjeDtsH.js";import{C as K}from"./chevron-right-CsZCuQHV.js";import{S as Q}from"./settings-DpXdLdVU.js";import{C as W}from"./crown-DU_u_ZwA.js";import{c as E}from"./createLucideIcon-D6uLTmh6.js";import{C as P}from"./clock-BOj9idei.js";import{M}from"./mail-_v0JwLzt.js";import{A as X}from"./arrow-right-BC7BNqDk.js";import"./vendor-firebase-CW1UtntS.js";/**
  * @license lucide-react v0.487.0 - ISC
  *
  * This source code is licensed under the ISC license.

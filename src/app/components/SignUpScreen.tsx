@@ -77,10 +77,9 @@ export function SignUpScreen() {
 
     setIsSubmitting(true);
     try {
-      const user = await authService.signUpWithEmail(name, email, password);
+      const user = await authService.signUpWithEmail(name, email, password, emergencyPin);
       setUser({
         ...user,
-        emergencyPin,
         emergencyExitLog: [],
       });
       navigate('/onboarding');

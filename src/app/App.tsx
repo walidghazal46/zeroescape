@@ -164,6 +164,8 @@ function PaywallOverlay() {
 function ProtectedRoute({ children }: { children: ReactNode }) {
   const { user, hasAccess } = useAuthStore();
   const { onboardingCompleted } = usePreferencesStore();
+  const { activeSession } = useSessionStore();
+  const location = useLocation();
 
   if (!user) {
     return <Navigate to="/login" replace />;
@@ -181,20 +183,28 @@ function ProtectedRoute({ children }: { children: ReactNode }) {
     return <Navigate to="/login" replace />;
   }
 
-  if (!onboardingCompleted) {
-    return <Navigate to="/onboarding" replace />;
+  // Expired registered user → blurred + paywall overlay
+  // Exceptions:
+  //   /settings     — user needs logout access, don't trap them
+  //   /active-session (with running session) — let them finish/abandon the session
+  if (expired) {
+    const isSettingsRoute = location.pathname === '/settings';
+    const isRunningSession = location.pathname === '/active-session' && !!activeSession;
+
+    if (!isSettingsRoute && !isRunningSession) {
+      return (
+        <div className="relative w-full h-screen overflow-hidden">
+          <div className="pointer-events-none select-none w-full h-full" style={{ filter: 'blur(4px)', opacity: 0.2 }}>
+            {children}
+          </div>
+          <PaywallOverlay />
+        </div>
+      );
+    }
   }
 
-  // Expired registered user → show screen blurred + paywall overlay
-  if (expired) {
-    return (
-      <div className="relative w-full h-screen overflow-hidden">
-        <div className="pointer-events-none select-none w-full h-full" style={{ filter: 'blur(4px)', opacity: 0.2 }}>
-          {children}
-        </div>
-        <PaywallOverlay />
-      </div>
-    );
+  if (!onboardingCompleted) {
+    return <Navigate to="/onboarding" replace />;
   }
 
   return <>{children}</>;
