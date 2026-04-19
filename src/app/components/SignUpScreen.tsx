@@ -1,38 +1,90 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Mail, Lock, Eye, EyeOff, User, ChevronRight } from 'lucide-react';
+import { Mail, Lock, Eye, EyeOff, User, ChevronRight, ShieldAlert, Loader2 } from 'lucide-react';
+import { useAuthStore } from '../../store/authStore';
+import { authService, getAuthErrorCode } from '../../services/authService';
+
+const authErrorMessages: Record<string, string> = {
+  'auth/email-already-in-use': 'هذا البريد الإلكتروني مستخدم بالفعل.',
+  'auth/invalid-email': 'صيغة البريد الإلكتروني غير صحيحة.',
+  'auth/weak-password': 'كلمة المرور ضعيفة. استخدم 8 أحرف على الأقل.',
+  'auth/operation-not-allowed': 'تسجيل البريد الإلكتروني غير مفعّل في Firebase.',
+  'auth/network-request-failed': 'مشكلة في الاتصال. تحقق من الإنترنت.',
+};
 
 export function SignUpScreen() {
   const navigate = useNavigate();
+  const { setUser, setEmergencyPin } = useAuthStore();
+
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [emergencyPin, setEmergencyPinInput] = useState('');
+  const [confirmPin, setConfirmPin] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [acceptTerms, setAcceptTerms] = useState(false);
+  const [error, setError] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleSignUp = (e: React.FormEvent) => {
+  const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (name && email && password && confirmPassword && acceptTerms) {
-      if (password === confirmPassword) {
-        navigate('/onboarding');
-      }
+    setError('');
+
+    if (!name || !email || !password || !confirmPassword || !emergencyPin || !confirmPin) return;
+    if (!acceptTerms) return;
+
+    if (password !== confirmPassword) {
+      setError('كلمتا المرور غير متطابقتين');
+      return;
+    }
+    if (password.length < 8) {
+      setError('كلمة المرور يجب أن تكون 8 أحرف على الأقل');
+      return;
+    }
+    if (emergencyPin.length !== 4 || !/^\d{4}$/.test(emergencyPin)) {
+      setError('رمز الطوارئ يجب أن يكون 4 أرقام');
+      return;
+    }
+    if (emergencyPin !== confirmPin) {
+      setError('رمزا الطوارئ غير متطابقين');
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      const user = await authService.signUpWithEmail(name, email, password);
+      // Save emergency PIN to local store (persisted via zustand)
+      setEmergencyPin(emergencyPin);
+      setUser(user);
+      navigate('/onboarding');
+    } catch (err) {
+      const code = getAuthErrorCode(err);
+      setError(authErrorMessages[code] ?? 'تعذر إنشاء الحساب. حاول مجدداً.');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-slate-950 flex flex-col p-6">
-      <div className="flex items-center gap-4 mb-8">
+    <div
+      className="min-h-screen bg-slate-950 flex flex-col px-4 overflow-y-auto hide-scrollbar"
+      style={{
+        paddingTop: `calc(env(safe-area-inset-top, 0px) + 20px)`,
+        paddingBottom: `calc(env(safe-area-inset-bottom, 0px) + 24px)`,
+      }}
+    >
+      <div className="flex items-center gap-3 mb-6">
         <button
           onClick={() => navigate('/login')}
-          className="p-2 text-slate-400 hover:text-white transition"
+          className="w-9 h-9 flex items-center justify-center text-slate-400 hover:text-white transition"
         >
           <ChevronRight className="w-6 h-6" />
         </button>
         <div>
-          <h1 className="text-white text-2xl font-bold">إنشاء حساب جديد</h1>
-          <p className="text-slate-400 text-sm">انضم إلى ZeroEscape No.1</p>
+          <h1 className="text-white text-xl font-bold">إنشاء حساب جديد</h1>
+          <p className="text-slate-500 text-xs">انضم إلى ZeroEscape No.1</p>
         </div>
       </div>
 
@@ -120,6 +172,55 @@ export function SignUpScreen() {
           </div>
         </div>
 
+        {/* Emergency PIN */}
+        <div className="bg-yellow-500/10 border border-yellow-500/30 rounded-2xl p-4 space-y-4">
+          <div className="flex items-center gap-2 mb-1">
+            <ShieldAlert className="w-5 h-5 text-yellow-400" />
+            <p className="text-yellow-300 font-medium text-sm">رمز الخروج الطارئ (4 أرقام)</p>
+          </div>
+          <p className="text-slate-400 text-xs leading-relaxed">
+            هذا الرمز يُستخدم فقط لإيقاف الجلسة في حالات الطوارئ — مرتان كحد أقصى يومياً لمدة 5 دقائق.
+          </p>
+          <div>
+            <label className="text-slate-400 text-sm mb-2 block">رمز الطوارئ</label>
+            <div className="relative">
+              <Lock className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-yellow-500" />
+              <input
+                type="password"
+                inputMode="numeric"
+                maxLength={4}
+                value={emergencyPin}
+                onChange={(e) => setEmergencyPinInput(e.target.value.replace(/\D/g, '').slice(0, 4))}
+                placeholder="••••"
+                className="w-full bg-slate-900 border border-yellow-500/40 rounded-2xl px-4 py-4 pr-12 text-white text-center tracking-widest text-xl focus:border-yellow-500 focus:outline-none transition"
+                required
+              />
+            </div>
+          </div>
+          <div>
+            <label className="text-slate-400 text-sm mb-2 block">تأكيد رمز الطوارئ</label>
+            <div className="relative">
+              <Lock className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-yellow-500" />
+              <input
+                type="password"
+                inputMode="numeric"
+                maxLength={4}
+                value={confirmPin}
+                onChange={(e) => setConfirmPin(e.target.value.replace(/\D/g, '').slice(0, 4))}
+                placeholder="••••"
+                className="w-full bg-slate-900 border border-yellow-500/40 rounded-2xl px-4 py-4 pr-12 text-white text-center tracking-widest text-xl focus:border-yellow-500 focus:outline-none transition"
+                required
+              />
+            </div>
+          </div>
+        </div>
+
+        {error && (
+          <p className="text-red-400 text-sm text-center bg-red-500/10 border border-red-500/20 rounded-xl py-3 px-4">
+            {error}
+          </p>
+        )}
+
         <button
           type="button"
           onClick={() => setAcceptTerms(!acceptTerms)}
@@ -145,14 +246,21 @@ export function SignUpScreen() {
       <button
         type="submit"
         onClick={handleSignUp}
-        disabled={!acceptTerms || !name || !email || !password || !confirmPassword}
-        className={`w-full py-4 rounded-2xl transition ${
-          acceptTerms && name && email && password && confirmPassword
+        disabled={isSubmitting || !acceptTerms || !name || !email || !password || !confirmPassword || emergencyPin.length !== 4 || confirmPin.length !== 4}
+        className={`w-full py-4 rounded-2xl transition flex items-center justify-center gap-2 ${
+          !isSubmitting && acceptTerms && name && email && password && confirmPassword && emergencyPin.length === 4 && confirmPin.length === 4
             ? 'bg-gradient-to-r from-blue-500 to-violet-600 text-white hover:opacity-90'
             : 'bg-slate-800 text-slate-500 cursor-not-allowed'
         }`}
       >
-        إنشاء الحساب
+        {isSubmitting ? (
+          <>
+            <Loader2 className="w-5 h-5 animate-spin" />
+            جارٍ الإنشاء...
+          </>
+        ) : (
+          'إنشاء الحساب'
+        )}
       </button>
 
       <div className="text-center mt-4">

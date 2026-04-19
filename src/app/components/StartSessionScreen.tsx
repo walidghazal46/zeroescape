@@ -1,24 +1,33 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ChevronRight, BookOpen, Briefcase, Moon, Settings as SettingsIcon } from 'lucide-react';
+import { ChevronRight, BookOpen, Briefcase, Moon, Settings as SettingsIcon, Zap } from 'lucide-react';
 import { useSessionStore } from '../../store/sessionStore';
+import { usePreferencesStore } from '../../store/preferencesStore';
+import { USER_GOALS } from '../../core/types';
 
 const modes = [
-  { id: 'study', icon: BookOpen, label: 'دراسة', duration: 120, color: 'from-blue-500 to-cyan-500' },
+  { id: 'study', icon: BookOpen, label: 'دراسة', duration: 90, color: 'from-blue-500 to-cyan-500' },
   { id: 'work', icon: Briefcase, label: 'عمل', duration: 90, color: 'from-violet-500 to-purple-500' },
   { id: 'sleep', icon: Moon, label: 'نوم', duration: 480, color: 'from-indigo-500 to-blue-500' },
+  { id: 'deep_detox', icon: Zap, label: 'ديتوكس عميق', duration: 180, color: 'from-red-500 to-orange-500' },
   { id: 'custom', icon: SettingsIcon, label: 'مخصص', duration: 60, color: 'from-emerald-500 to-teal-500' },
 ];
 
 export function StartSessionScreen() {
   const navigate = useNavigate();
   const { startSession, webProtectionEnabled } = useSessionStore();
-  const [selectedMode, setSelectedMode] = useState('study');
-  const [duration, setDuration] = useState(120);
+  const { userGoal } = usePreferencesStore();
+
+  const goalConfig = userGoal ? USER_GOALS[userGoal] : null;
+  const defaultMode = goalConfig?.suggestedMode ?? 'study';
+  const defaultModeData = modes.find((m) => m.id === defaultMode) ?? modes[0];
+
+  const [selectedMode, setSelectedMode] = useState(defaultMode);
+  const [duration, setDuration] = useState(defaultModeData.duration);
   const [blockSocial, setBlockSocial] = useState(true);
   const [webFilter, setWebFilter] = useState(webProtectionEnabled);
 
-  const selectedModeData = modes.find(m => m.id === selectedMode);
+  const selectedModeData = modes.find((m) => m.id === selectedMode) ?? modes[0];
 
   const handleStart = () => {
     startSession(selectedMode, duration, blockSocial, webFilter);
@@ -26,25 +35,32 @@ export function StartSessionScreen() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-950 flex flex-col p-6">
-      <div className="flex items-center gap-4 mb-8">
+    <div
+      className="min-h-screen bg-slate-950 flex flex-col px-4"
+      style={{
+        paddingTop: `calc(env(safe-area-inset-top, 0px) + 20px)`,
+        paddingBottom: `calc(env(safe-area-inset-bottom, 0px) + 24px)`,
+      }}
+    >
+      {/* ── Header ─────────────────────────────────────────────────────────── */}
+      <div className="flex items-center gap-3 mb-6">
         <button
           onClick={() => navigate('/home')}
-          className="p-2 text-slate-400 hover:text-white transition"
+          className="w-9 h-9 flex items-center justify-center text-slate-400 hover:text-white transition"
         >
           <ChevronRight className="w-6 h-6" />
         </button>
-        <h1 className="text-white text-2xl font-bold">بدء جلسة جديدة</h1>
+        <h1 className="text-white text-xl font-bold">بدء جلسة جديدة</h1>
       </div>
 
-      <div className="flex-1 space-y-6 mb-6">
+      <div className="flex-1 space-y-5 overflow-y-auto hide-scrollbar">
+        {/* ── Mode selection ────────────────────────────────────────────────── */}
         <div>
-          <label className="text-slate-400 text-sm mb-3 block">اختر نوع الجلسة</label>
-          <div className="grid grid-cols-2 gap-3">
+          <p className="text-slate-500 text-xs mb-3">اختر نوع الجلسة</p>
+          <div className="grid grid-cols-2 gap-2.5">
             {modes.map((mode) => {
               const Icon = mode.icon;
               const isSelected = selectedMode === mode.id;
-
               return (
                 <button
                   key={mode.id}
@@ -52,23 +68,40 @@ export function StartSessionScreen() {
                     setSelectedMode(mode.id);
                     setDuration(mode.duration);
                   }}
-                  className={`p-5 rounded-2xl border-2 transition ${
+                  className={`p-4 rounded-xl border-2 transition active:scale-[0.97] ${
                     isSelected
                       ? `bg-gradient-to-br ${mode.color} border-transparent`
                       : 'bg-slate-900 border-slate-800 hover:border-slate-700'
                   }`}
                 >
-                  <Icon className={`w-8 h-8 mb-3 ${isSelected ? 'text-white' : 'text-slate-400'}`} />
-                  <p className={`font-medium ${isSelected ? 'text-white' : 'text-slate-300'}`}>{mode.label}</p>
+                  <Icon className={`w-6 h-6 mb-2 ${isSelected ? 'text-white' : 'text-slate-400'}`} />
+                  <p className={`text-sm font-medium ${isSelected ? 'text-white' : 'text-slate-300'}`}>
+                    {mode.label}
+                  </p>
+                  {mode.id === 'deep_detox' && (
+                    <p className={`text-xs mt-0.5 ${isSelected ? 'text-white/70' : 'text-slate-600'}`}>
+                      احتكاك مزدوج
+                    </p>
+                  )}
                 </button>
               );
             })}
           </div>
         </div>
 
+        {/* ── Deep Detox Warning ───────────────────────────────────────────── */}
+        {selectedMode === 'deep_detox' && (
+          <div className="bg-red-500/10 border border-red-500/20 rounded-xl p-4">
+            <p className="text-red-400 text-xs leading-relaxed">
+              <span className="font-semibold">وضع الديتوكس العميق:</span> حظر كامل للتطبيقات والمواقع مع طبقة احتكاك مضاعفة. لا يمكن تجاوزه إلا بطوارئ حقيقية.
+            </p>
+          </div>
+        )}
+
+        {/* ── Duration slider ───────────────────────────────────────────────── */}
         <div>
-          <label className="text-slate-400 text-sm mb-3 block">المدة (دقيقة)</label>
-          <div className="bg-slate-900 rounded-2xl p-6 border border-slate-800">
+          <p className="text-slate-500 text-xs mb-3">المدة (دقيقة)</p>
+          <div className="bg-slate-900 border border-slate-800 rounded-xl p-4">
             <input
               type="range"
               min="15"
@@ -78,52 +111,43 @@ export function StartSessionScreen() {
               onChange={(e) => setDuration(Number(e.target.value))}
               className="w-full"
             />
-            <div className={`text-center mt-4 text-3xl font-bold bg-gradient-to-r ${selectedModeData?.color} bg-clip-text text-transparent`}>
-              {duration} دقيقة
+            <div className={`text-center mt-3 text-2xl font-bold bg-gradient-to-r ${selectedModeData.color} bg-clip-text text-transparent tabular-nums`}>
+              {duration >= 60
+                ? `${Math.floor(duration / 60)}h ${duration % 60 > 0 ? `${duration % 60}m` : ''}`
+                : `${duration}m`}
             </div>
           </div>
         </div>
 
-        <div className="space-y-3">
+        {/* ── Toggles ───────────────────────────────────────────────────────── */}
+        <div className="space-y-2.5">
           <button
             onClick={() => setBlockSocial(!blockSocial)}
-            className={`w-full p-5 rounded-2xl border-2 transition flex items-center justify-between ${
-              blockSocial
-                ? 'bg-red-500/10 border-red-500/30'
-                : 'bg-slate-900 border-slate-800'
+            className={`w-full rounded-xl border p-4 flex items-center justify-between transition ${
+              blockSocial ? 'bg-red-500/10 border-red-500/30' : 'bg-slate-900 border-slate-800'
             }`}
           >
-            <div className="text-right flex-1">
-              <h3 className="text-white font-medium mb-1">حظر مواقع التواصل</h3>
-              <p className="text-slate-400 text-sm">انستقرام، تيك توك، سناب شات...</p>
+            <div className={`w-12 h-6 rounded-full relative transition flex-shrink-0 ${blockSocial ? 'bg-red-500' : 'bg-slate-700'}`}>
+              <div className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-all ${blockSocial ? 'left-1' : 'right-1'}`} />
             </div>
-            <div className={`w-12 h-7 rounded-full transition relative ${
-              blockSocial ? 'bg-red-500' : 'bg-slate-700'
-            }`}>
-              <div className={`absolute top-1 w-5 h-5 bg-white rounded-full transition-all ${
-                blockSocial ? 'left-1' : 'right-1'
-              }`} />
+            <div className="flex-1 text-right mr-3">
+              <h3 className="text-white text-sm font-medium">حظر تطبيقات التواصل</h3>
+              <p className="text-slate-500 text-xs mt-0.5">انستقرام، تيك توك، سناب...</p>
             </div>
           </button>
 
           <button
             onClick={() => setWebFilter(!webFilter)}
-            className={`w-full p-5 rounded-2xl border-2 transition flex items-center justify-between ${
-              webFilter
-                ? 'bg-emerald-500/10 border-emerald-500/30'
-                : 'bg-slate-900 border-slate-800'
+            className={`w-full rounded-xl border p-4 flex items-center justify-between transition ${
+              webFilter ? 'bg-emerald-500/10 border-emerald-500/30' : 'bg-slate-900 border-slate-800'
             }`}
           >
-            <div className="text-right flex-1">
-              <h3 className="text-white font-medium mb-1">تصفية آمنة للويب</h3>
-              <p className="text-slate-400 text-sm">حظر المحتوى الضار</p>
+            <div className={`w-12 h-6 rounded-full relative transition flex-shrink-0 ${webFilter ? 'bg-emerald-500' : 'bg-slate-700'}`}>
+              <div className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-all ${webFilter ? 'left-1' : 'right-1'}`} />
             </div>
-            <div className={`w-12 h-7 rounded-full transition relative ${
-              webFilter ? 'bg-emerald-500' : 'bg-slate-700'
-            }`}>
-              <div className={`absolute top-1 w-5 h-5 bg-white rounded-full transition-all ${
-                webFilter ? 'left-1' : 'right-1'
-              }`} />
+            <div className="flex-1 text-right mr-3">
+              <h3 className="text-white text-sm font-medium">تصفية الويب</h3>
+              <p className="text-slate-500 text-xs mt-0.5">حظر المحتوى الضار</p>
             </div>
           </button>
         </div>
@@ -131,7 +155,7 @@ export function StartSessionScreen() {
 
       <button
         onClick={handleStart}
-        className={`w-full py-4 rounded-2xl bg-gradient-to-r ${selectedModeData?.color} text-white hover:opacity-90 transition`}
+        className={`w-full h-12 rounded-xl mt-5 bg-gradient-to-r ${selectedModeData.color} text-white font-medium hover:opacity-90 transition`}
       >
         ابدأ الجلسة الآن
       </button>

@@ -1,4 +1,4 @@
-package com.example.zeroescape
+package com.zorexapps.zeroescape
 
 import org.junit.Test
 

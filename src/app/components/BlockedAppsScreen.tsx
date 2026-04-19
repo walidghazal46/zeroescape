@@ -24,11 +24,17 @@ export function BlockedAppsScreen() {
   const blockedCount = Object.values(blockedApps).filter(Boolean).length;
 
   return (
-    <div className="min-h-screen bg-slate-950 flex flex-col p-6">
-      <div className="flex items-center gap-4 mb-8">
+    <div
+      className="min-h-screen bg-slate-950 flex flex-col px-4 overflow-y-auto hide-scrollbar"
+      style={{
+        paddingTop: `calc(env(safe-area-inset-top, 0px) + 20px)`,
+        paddingBottom: `calc(env(safe-area-inset-bottom, 0px) + 24px)`,
+      }}
+    >
+      <div className="flex items-center gap-3 mb-6">
         <button
           onClick={() => navigate('/home')}
-          className="p-2 text-slate-400 hover:text-white transition"
+          className="w-9 h-9 flex items-center justify-center text-slate-400 hover:text-white transition"
         >
           <ChevronRight className="w-6 h-6" />
         </button>

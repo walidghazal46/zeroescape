@@ -1,0 +1,95 @@
+// ─── Session Modes ────────────────────────────────────────────────────────────
+export type SessionMode = 'study' | 'work' | 'sleep' | 'deep_detox' | 'custom';
+
+// ─── User Goal ────────────────────────────────────────────────────────────────
+export type UserGoalType = 'social' | 'study' | 'work' | 'sleep' | 'custom';
+
+// ─── Break / Friction Events ──────────────────────────────────────────────────
+export type BreakOutcome = 'returned' | 'emergency_used';
+
+export type SessionEndReason = 'completed' | 'emergency_exit' | 'abandoned' | 'crash_recovered';
+
+export interface BreakAttempt {
+  id: string;
+  sessionId: string;
+  appOrUrl: string;
+  reason: string;
+  attemptedAt: number;
+  outcome: BreakOutcome;
+  hour: number; // 0–23 for weak-period analysis
+}
+
+// ─── Goal Configuration ───────────────────────────────────────────────────────
+export interface GoalConfig {
+  labelAr: string;
+  labelEn: string;
+  emoji: string;
+  suggestedMode: SessionMode;
+  suggestedDurationMinutes: number;
+  suggestedBlockedApps: string[];
+  motivationalAr: string;
+  motivationalEn: string;
+}
+
+export const USER_GOALS: Record<UserGoalType, GoalConfig> = {
+  social: {
+    labelAr: 'تقليل السوشيال ميديا',
+    labelEn: 'Reduce Social Media',
+    emoji: '📵',
+    suggestedMode: 'deep_detox',
+    suggestedDurationMinutes: 120,
+    suggestedBlockedApps: ['instagram', 'tiktok', 'twitter', 'snapchat', 'whatsapp'],
+    motivationalAr: 'وقتك أثمن من أن يُسرق بالتمرير اللانهائي',
+    motivationalEn: 'Your time is too valuable to be stolen by endless scrolling',
+  },
+  study: {
+    labelAr: 'تركيز أكاديمي أفضل',
+    labelEn: 'Better Academic Focus',
+    emoji: '📚',
+    suggestedMode: 'study',
+    suggestedDurationMinutes: 90,
+    suggestedBlockedApps: ['instagram', 'tiktok', 'twitter', 'youtube', 'games'],
+    motivationalAr: 'كل دقيقة تركيز اليوم تُوفر ساعات غداً',
+    motivationalEn: 'Every focused minute today saves hours tomorrow',
+  },
+  work: {
+    labelAr: 'إنتاجية أعلى في العمل',
+    labelEn: 'Higher Work Productivity',
+    emoji: '💼',
+    suggestedMode: 'work',
+    suggestedDurationMinutes: 90,
+    suggestedBlockedApps: ['instagram', 'tiktok', 'twitter', 'games'],
+    motivationalAr: 'العمل العميق هو ما يُميز المحترفين',
+    motivationalEn: 'Deep work is what separates professionals',
+  },
+  sleep: {
+    labelAr: 'نوم أفضل وصحة أعلى',
+    labelEn: 'Better Sleep & Health',
+    emoji: '🌙',
+    suggestedMode: 'sleep',
+    suggestedDurationMinutes: 480,
+    suggestedBlockedApps: ['instagram', 'tiktok', 'twitter', 'youtube', 'snapchat', 'games'],
+    motivationalAr: 'الهاتف قبل النوم يسرق طاقتك لليوم كله',
+    motivationalEn: 'Phone before sleep steals your energy for the whole day',
+  },
+  custom: {
+    labelAr: 'هدف مخصص',
+    labelEn: 'Custom Goal',
+    emoji: '🎯',
+    suggestedMode: 'custom',
+    suggestedDurationMinutes: 60,
+    suggestedBlockedApps: ['instagram', 'tiktok'],
+    motivationalAr: 'كل خطوة في الاتجاه الصحيح تُحدث فرقاً',
+    motivationalEn: 'Every step in the right direction makes a difference',
+  },
+};
+
+// ─── Daily Analytics Summary ──────────────────────────────────────────────────
+export interface DailySummary {
+  day: string; // YYYY-MM-DD
+  totalFocusMinutes: number;
+  breakAttempts: number;
+  emergencyExits: number;
+  complianceRate: number; // 0–1
+  sessionCount: number;
+}

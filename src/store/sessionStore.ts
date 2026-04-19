@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { v4 as uuidv4 } from 'uuid';
+import type { SessionEndReason } from '../core/types';
 
 export interface CompletedSession {
   id: string;
@@ -9,11 +10,13 @@ export interface CompletedSession {
   blockedAttempts: number;
   completedAt: number; // timestamp
   day: string; // 'YYYY-MM-DD'
+  endReason: SessionEndReason;
 }
 
 export interface SessionStore {
   // Active session state (not persisted)
   activeSession: {
+    sessionId: string;
     mode: string;
     durationMinutes: number;
     startedAt: number;
@@ -36,6 +39,7 @@ export interface SessionStore {
   abandonSession: () => void;
   setBlockedApp: (id: string, blocked: boolean) => void;
   blockAllApps: () => void;
+  setBulkBlockedApps: (appIds: string[]) => void;
   setWebProtection: (enabled: boolean) => void;
 
   // Computed helpers
@@ -76,6 +80,7 @@ export const useSessionStore = create<SessionStore>()(
       startSession: (mode, durationMinutes, blockSocial, webFilter) => {
         set({
           activeSession: {
+            sessionId: uuidv4(),
             mode,
             durationMinutes,
             startedAt: Date.now(),
@@ -118,6 +123,7 @@ export const useSessionStore = create<SessionStore>()(
           blockedAttempts: activeSession.blockedAttempts,
           completedAt: Date.now(),
           day: today,
+          endReason: 'completed',
         };
 
         set({
@@ -137,6 +143,15 @@ export const useSessionStore = create<SessionStore>()(
       setBlockedApp: (id, blocked) => {
         const { blockedApps } = get();
         set({ blockedApps: { ...blockedApps, [id]: blocked } });
+      },
+
+      setBulkBlockedApps: (appIds) => {
+        const { blockedApps } = get();
+        const updates = appIds.reduce<Record<string, boolean>>(
+          (acc, id) => ({ ...acc, [id]: true }),
+          {}
+        );
+        set({ blockedApps: { ...blockedApps, ...updates } });
       },
 
       blockAllApps: () => {

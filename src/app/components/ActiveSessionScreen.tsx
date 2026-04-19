@@ -1,12 +1,13 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { BookOpen, Briefcase, Moon, Settings, ShieldCheck, Globe, AlertCircle, EyeOff } from 'lucide-react';
+import { BookOpen, Briefcase, Moon, Settings, AlertCircle, EyeOff, Zap } from 'lucide-react';
 import { useSessionStore } from '../../store/sessionStore';
 
 const modeIcons = {
   study: BookOpen,
   work: Briefcase,
   sleep: Moon,
+  deep_detox: Zap,
   custom: Settings,
 };
 
@@ -14,6 +15,7 @@ const modeColors = {
   study: 'from-blue-500 to-cyan-500',
   work: 'from-violet-500 to-purple-500',
   sleep: 'from-indigo-500 to-blue-500',
+  deep_detox: 'from-red-500 to-orange-500',
   custom: 'from-emerald-500 to-teal-500',
 };
 
@@ -21,6 +23,7 @@ const modeLabels = {
   study: 'دراسة',
   work: 'عمل',
   sleep: 'نوم',
+  deep_detox: 'ديتوكس عميق',
   custom: 'مخصص',
 };
 

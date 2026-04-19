@@ -23,7 +23,13 @@ export function SessionCompleteScreen() {
   const blockedAttempts = session?.blockedAttempts ?? 0;
 
   return (
-    <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center p-6">
+    <div
+      className="min-h-screen bg-slate-950 flex flex-col items-center justify-center px-6"
+      style={{
+        paddingTop: `calc(env(safe-area-inset-top, 0px) + 16px)`,
+        paddingBottom: `calc(env(safe-area-inset-bottom, 0px) + 16px)`,
+      }}
+    >
       <div className="w-full max-w-md space-y-8 text-center">
         <div className="relative">
           <div className="absolute inset-0 bg-emerald-500/20 blur-3xl rounded-full"></div>

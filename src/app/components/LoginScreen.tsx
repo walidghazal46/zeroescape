@@ -47,6 +47,22 @@ const getAuthErrorMessage = (
       ar: 'تم حظر نافذة Google. اسمح بالنوافذ المنبثقة ثم أعد المحاولة.',
       en: 'Google popup was blocked. Allow popups and try again.',
     },
+    'auth/google-webview-not-supported': {
+      ar: 'دخول Google غير مدعوم داخل WebView للأندرويد. استخدم البريد وكلمة المرور أو أنشئ حساباً.',
+      en: 'Google sign-in is not supported inside Android WebView. Use email/password or create an account.',
+    },
+    'auth/operation-not-supported-in-this-environment': {
+      ar: 'بيئة التطبيق الحالية لا تدعم دخول Google. استخدم تسجيل الدخول بالبريد.',
+      en: 'This environment does not support Google sign-in. Use email sign-in instead.',
+    },
+    'auth/unauthorized-domain': {
+      ar: 'نطاق التطبيق غير مضاف في Firebase Authorized Domains.',
+      en: 'App domain is not added to Firebase Authorized Domains.',
+    },
+    'auth/redirect-initiated': {
+      ar: 'جارٍ فتح صفحة Google للمصادقة... انتظر قليلاً.',
+      en: 'Opening Google authentication page... please wait.',
+    },
     'auth/too-many-requests': {
       ar: 'محاولات كثيرة جدًا. حاول مرة أخرى لاحقًا.',
       en: 'Too many attempts. Please try again later.',
@@ -58,6 +74,38 @@ const getAuthErrorMessage = (
     'auth/api-key-not-valid.-please-pass-a-valid-api-key.': {
       ar: 'مفتاح Firebase API غير صحيح. راجع إعدادات البيئة.',
       en: 'Invalid Firebase API key. Check environment configuration.',
+    },
+    'auth/google-signin-timeout': {
+      ar: 'انتهت مهلة تسجيل الدخول بـ Google. حاول مرة أخرى.',
+      en: 'Google sign-in timed out. Please try again.',
+    },
+    'auth/google-native-failed': {
+      ar: 'فشل تسجيل الدخول الأصلي بـ Google. حاول مرة أخرى.',
+      en: 'Native Google sign-in failed. Please try again.',
+    },
+    'native_api_error_10': {
+      ar: 'خطأ في إعداد Google Sign-In (DEVELOPER_ERROR). تحقق من SHA fingerprint في Firebase.',
+      en: 'Google Sign-In configuration error (DEVELOPER_ERROR). Check SHA fingerprint in Firebase.',
+    },
+    'native_api_error_12500': {
+      ar: 'خدمات Google Play غير متاحة أو تحتاج تحديث.',
+      en: 'Google Play Services unavailable or needs update.',
+    },
+    'native_api_error_12501': {
+      ar: 'تم إلغاء تسجيل الدخول بـ Google.',
+      en: 'Google sign-in was cancelled.',
+    },
+    'native_cancelled': {
+      ar: 'تم إلغاء تسجيل الدخول بـ Google.',
+      en: 'Google sign-in was cancelled.',
+    },
+    'native_missing_id_token': {
+      ar: 'لم يتم استلام رمز التحقق من Google. حاول مرة أخرى.',
+      en: 'No ID token received from Google. Please try again.',
+    },
+    'native_not_initialized': {
+      ar: 'لم يتم تهيئة Google Sign-In. أعد تشغيل التطبيق.',
+      en: 'Google Sign-In not initialized. Restart the app.',
     },
   };
 
@@ -87,6 +135,10 @@ const getAuthErrorMessage = (
 export function LoginScreen() {
   const navigate = useNavigate();
   const { setUser } = useAuthStore();
+  const { onboardingCompleted } = usePreferencesStore();
+  const androidBridge = (window as Window & { Android?: { startGoogleSignIn?: () => void } }).Android;
+  const isAndroidWebView = typeof androidBridge !== 'undefined';
+  const hasNativeGoogleSignIn = typeof androidBridge?.startGoogleSignIn === 'function';
   const [tab, setTab] = useState<'login' | 'signup' | 'guest'>('login');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -104,7 +156,7 @@ export function LoginScreen() {
     try {
       const user = await authService.signInWithEmail(email, password);
       setUser(user);
-      navigate('/home');
+      navigate(onboardingCompleted ? '/home' : '/onboarding');
     } catch (error) {
       setError(getAuthErrorMessage(getAuthErrorCode(error), lang, 'login'));
     } finally {
@@ -135,7 +187,7 @@ export function LoginScreen() {
     try {
       const guestUser = await authService.createGuestUser();
       setUser(guestUser);
-      navigate('/home');
+      navigate(onboardingCompleted ? '/home' : '/onboarding');
     } catch (error) {
       setError(getAuthErrorMessage(getAuthErrorCode(error), lang, 'guest'));
     } finally {
@@ -150,7 +202,7 @@ export function LoginScreen() {
     try {
       const user = await authService.signInWithGoogle();
       setUser(user);
-      navigate('/home');
+      navigate(onboardingCompleted ? '/home' : '/onboarding');
     } catch (error) {
       setError(getAuthErrorMessage(getAuthErrorCode(error), lang, 'google'));
     } finally {
@@ -159,19 +211,29 @@ export function LoginScreen() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-950 flex flex-col p-4 md:p-6">
-      <div className="mb-4 flex items-center justify-between md:mb-6">
+    <div
+      className="min-h-screen bg-slate-950 flex flex-col overflow-y-auto hide-scrollbar px-4"
+      style={{
+        paddingTop: `calc(env(safe-area-inset-top, 0px) + 20px)`,
+        paddingBottom: `calc(env(safe-area-inset-bottom, 0px) + 24px)`,
+      }}
+    >
+      <div className="mb-2 flex items-center justify-between md:mb-6">
         <div className="flex flex-1 items-center justify-center px-3 md:px-0">
           <div className="relative">
             <div className="absolute inset-0 rounded-full bg-sky-400/10 blur-2xl"></div>
             <img
               src="/icon.png"
               alt="ZeroEscape"
-              className="relative h-[190px] w-[190px] rounded-xl object-cover md:h-[270px] md:w-[270px]"
+              className={`relative rounded-xl object-cover ${
+                tab === 'signup'
+                  ? 'h-[120px] w-[120px] md:h-[220px] md:w-[220px]'
+                  : 'h-[160px] w-[160px] md:h-[270px] md:w-[270px]'
+              }`}
             />
           </div>
         </div>
-        <div className="fixed bottom-4 right-4 z-50 flex items-center gap-2 md:bottom-6 md:right-6">
+        <div className="hidden md:fixed md:bottom-6 md:right-6 md:z-50 md:flex md:items-center md:gap-2">
           <button
             onClick={() => setLanguage('ar')}
             className={`px-2 py-1 rounded text-xs font-medium transition ${
@@ -191,7 +253,7 @@ export function LoginScreen() {
         </div>
       </div>
 
-      <div className="mx-auto mb-6 flex w-full max-w-sm gap-2 rounded-2xl bg-slate-900 p-1 md:mb-8 md:max-w-none">
+      <div className="mx-auto mb-4 flex w-full max-w-sm gap-2 rounded-2xl bg-slate-900 p-1 md:mb-8 md:max-w-none">
         <button
           onClick={() => setTab('login')}
           className={`flex-1 rounded-xl py-2.5 text-sm font-medium transition md:py-3 md:text-base ${
@@ -224,15 +286,23 @@ export function LoginScreen() {
         </button>
       </div>
 
-      <div className="mx-auto flex-1 w-full max-w-sm md:max-w-none">
+      <div className="mx-auto w-full max-w-sm md:max-w-none">
         <button
           onClick={handleGoogleSignIn}
-          disabled={isSubmitting}
+          disabled={isSubmitting || (isAndroidWebView && !hasNativeGoogleSignIn)}
           className="mb-5 flex w-full items-center justify-center gap-3 rounded-2xl border border-slate-800 bg-slate-900 py-3.5 text-white transition hover:bg-slate-800 md:mb-6 md:py-4"
         >
           <Chrome className="h-5 w-5" />
           {lang === 'ar' ? 'دخول بـ جوجل' : 'Sign in with Google'}
         </button>
+
+        {isAndroidWebView && !hasNativeGoogleSignIn && (
+          <div className="mb-4 rounded-2xl border border-yellow-500/30 bg-yellow-500/10 px-4 py-3 text-right text-sm text-yellow-200">
+            {lang === 'ar'
+              ? 'تسجيل Google غير متاح داخل نسخة Android الحالية (WebView). استخدم البريد وكلمة المرور.'
+              : 'Google sign-in is unavailable in the current Android WebView build. Use email and password.'}
+          </div>
+        )}
 
         {error && (
           <div className="mb-4 rounded-2xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-right text-sm text-red-300">
@@ -250,7 +320,7 @@ export function LoginScreen() {
         </div>
 
         {tab === 'login' && (
-          <form onSubmit={handleLogin} className="space-y-4 md:space-y-5">
+          <form onSubmit={handleLogin} className="space-y-3 md:space-y-5">
             <div>
               <label className="mb-2 block text-sm text-slate-400">
                 {lang === 'ar' ? 'البريد الإلكتروني' : 'Email'}
@@ -262,7 +332,7 @@ export function LoginScreen() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="example@email.com"
-                  className="w-full rounded-2xl border border-slate-800 bg-slate-900 px-4 py-3.5 pr-12 text-white placeholder:text-slate-600 transition focus:border-sky-500 focus:outline-none md:py-4"
+                  className="w-full rounded-2xl border border-slate-800 bg-slate-900 px-4 py-3 pr-12 text-white placeholder:text-slate-600 transition focus:border-sky-500 focus:outline-none md:py-4"
                   required
                 />
               </div>
@@ -279,7 +349,7 @@ export function LoginScreen() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••"
-                  className="w-full rounded-2xl border border-slate-800 bg-slate-900 px-4 py-3.5 pl-12 pr-12 text-white placeholder:text-slate-600 transition focus:border-sky-500 focus:outline-none md:py-4"
+                  className="w-full rounded-2xl border border-slate-800 bg-slate-900 px-4 py-3 pl-12 pr-12 text-white placeholder:text-slate-600 transition focus:border-sky-500 focus:outline-none md:py-4"
                   required
                 />
                 <button
@@ -299,16 +369,35 @@ export function LoginScreen() {
             <button
               type="submit"
               disabled={isSubmitting}
-              className="flex w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-sky-600 to-cyan-700 py-3.5 text-white transition hover:opacity-90 md:py-4"
+              className="flex w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-sky-600 to-cyan-700 py-3 text-white transition hover:opacity-90 md:py-4"
             >
               <LogIn className="h-5 w-5" />
               {isSubmitting ? (lang === 'ar' ? 'جاري التنفيذ...' : 'Please wait...') : (lang === 'ar' ? 'تسجيل الدخول' : 'Sign In')}
             </button>
+
+            <div className="mt-2 flex items-center justify-end gap-2 md:hidden">
+              <button
+                onClick={() => setLanguage('ar')}
+                className={`px-2 py-1 rounded text-xs font-medium transition ${
+                  lang === 'ar' ? 'bg-sky-600 text-white' : 'bg-slate-900 text-slate-400'
+                }`}
+              >
+                العربية
+              </button>
+              <button
+                onClick={() => setLanguage('en')}
+                className={`px-2 py-1 rounded text-xs font-medium transition ${
+                  lang === 'en' ? 'bg-sky-600 text-white' : 'bg-slate-900 text-slate-400'
+                }`}
+              >
+                EN
+              </button>
+            </div>
           </form>
         )}
 
         {tab === 'signup' && (
-          <form onSubmit={handleSignUp} className="space-y-4 md:space-y-5">
+          <form onSubmit={handleSignUp} className="space-y-3 md:space-y-5">
             <div>
               <label className="mb-2 block text-sm text-slate-400">
                 {lang === 'ar' ? 'الاسم الكامل' : 'Full Name'}
@@ -318,7 +407,7 @@ export function LoginScreen() {
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 placeholder={lang === 'ar' ? 'أحمد محمد' : 'John Doe'}
-                className="w-full rounded-2xl border border-slate-800 bg-slate-900 px-4 py-3.5 text-white placeholder:text-slate-600 transition focus:border-sky-500 focus:outline-none md:py-4"
+                className="w-full rounded-2xl border border-slate-800 bg-slate-900 px-4 py-3 text-white placeholder:text-slate-600 transition focus:border-sky-500 focus:outline-none md:py-4"
                 required
               />
             </div>
@@ -334,7 +423,7 @@ export function LoginScreen() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="example@email.com"
-                  className="w-full rounded-2xl border border-slate-800 bg-slate-900 px-4 py-3.5 pr-12 text-white placeholder:text-slate-600 transition focus:border-sky-500 focus:outline-none md:py-4"
+                  className="w-full rounded-2xl border border-slate-800 bg-slate-900 px-4 py-3 pr-12 text-white placeholder:text-slate-600 transition focus:border-sky-500 focus:outline-none md:py-4"
                   required
                 />
               </div>
@@ -351,7 +440,7 @@ export function LoginScreen() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••"
-                  className="w-full rounded-2xl border border-slate-800 bg-slate-900 px-4 py-3.5 pl-12 pr-12 text-white placeholder:text-slate-600 transition focus:border-sky-500 focus:outline-none md:py-4"
+                  className="w-full rounded-2xl border border-slate-800 bg-slate-900 px-4 py-3 pl-12 pr-12 text-white placeholder:text-slate-600 transition focus:border-sky-500 focus:outline-none md:py-4"
                   required
                 />
                 <button
@@ -370,10 +459,29 @@ export function LoginScreen() {
             <button
               type="submit"
               disabled={isSubmitting}
-              className="w-full rounded-2xl bg-gradient-to-r from-sky-600 to-cyan-700 py-3.5 text-white transition hover:opacity-90 md:py-4"
+              className="w-full rounded-2xl bg-gradient-to-r from-sky-600 to-cyan-700 py-3 text-white transition hover:opacity-90 md:py-4"
             >
               {isSubmitting ? (lang === 'ar' ? 'جاري التنفيذ...' : 'Please wait...') : (lang === 'ar' ? 'إنشاء الحساب' : 'Create Account')}
             </button>
+
+            <div className="mt-2 flex items-center justify-end gap-2 md:hidden">
+              <button
+                onClick={() => setLanguage('ar')}
+                className={`px-2 py-1 rounded text-xs font-medium transition ${
+                  lang === 'ar' ? 'bg-sky-600 text-white' : 'bg-slate-900 text-slate-400'
+                }`}
+              >
+                العربية
+              </button>
+              <button
+                onClick={() => setLanguage('en')}
+                className={`px-2 py-1 rounded text-xs font-medium transition ${
+                  lang === 'en' ? 'bg-sky-600 text-white' : 'bg-slate-900 text-slate-400'
+                }`}
+              >
+                EN
+              </button>
+            </div>
           </form>
         )}
 
@@ -426,6 +534,7 @@ export function LoginScreen() {
             </p>
           </div>
         )}
+
       </div>
     </div>
   );
