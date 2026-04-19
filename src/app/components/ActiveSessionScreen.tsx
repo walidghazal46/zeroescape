@@ -33,7 +33,20 @@ export function ActiveSessionScreen() {
   const { mode = 'study', duration = 120 } = location.state || {};
 
   const { activeSession, incrementBlockedAttempt, finishSession } = useSessionStore();
-  const [timeLeft, setTimeLeft] = useState(duration * 60);
+  // When returning from background, remainingSeconds is passed so the countdown
+  // resumes from where it left off instead of restarting from the full duration.
+  const { remainingSeconds } = location.state || {};
+  const [timeLeft, setTimeLeft] = useState<number>(() => {
+    if (remainingSeconds != null && remainingSeconds > 0) return remainingSeconds;
+    // Fallback: derive from store (handles cold-start recovery)
+    const session = activeSession;
+    if (session) {
+      const elapsed = Math.floor((Date.now() - session.startedAt) / 1000);
+      const left = session.durationMinutes * 60 - elapsed;
+      if (left > 0) return left;
+    }
+    return duration * 60;
+  });
   const [showWarning, setShowWarning] = useState(false);
   const wakeLockRef = useRef<WakeLockSentinel | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);

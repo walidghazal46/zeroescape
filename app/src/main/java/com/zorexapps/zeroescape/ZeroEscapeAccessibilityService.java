@@ -16,7 +16,11 @@ import android.view.accessibility.AccessibilityEvent;
  * closed immediately during an active session.
  */
 public class ZeroEscapeAccessibilityService extends AccessibilityService {
-    private static final long RELAUNCH_THROTTLE_MS = 1200;
+    /**
+     * Minimum time between two successive relaunch attempts.
+     * 3 s is long enough to prevent cascading events while still being fast.
+     */
+    private static final long RELAUNCH_THROTTLE_MS = 3000;
 
     /** Singleton reference so MainActivity can query it. */
     private static ZeroEscapeAccessibilityService instance;
@@ -35,17 +39,21 @@ public class ZeroEscapeAccessibilityService extends AccessibilityService {
         instance = this;
 
         AccessibilityServiceInfo info = new AccessibilityServiceInfo();
-        info.eventTypes = AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED
-                        | AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED;
+        // TYPE_WINDOW_CONTENT_CHANGED fires too frequently (keyboard, WebView rendering,
+        // etc.) and causes false positives.  Only react to actual window / activity changes.
+        info.eventTypes = AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED;
         info.feedbackType = AccessibilityServiceInfo.FEEDBACK_GENERIC;
         info.flags = AccessibilityServiceInfo.FLAG_REPORT_VIEW_IDS
                    | AccessibilityServiceInfo.FLAG_RETRIEVE_INTERACTIVE_WINDOWS;
-        info.notificationTimeout = 100;
+        info.notificationTimeout = 300;
         setServiceInfo(info);
     }
 
     @Override
     public void onAccessibilityEvent(AccessibilityEvent event) {
+        // Guard: only react to window-state changes
+        if (event.getEventType() != AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED) return;
+
         CharSequence packageName = event.getPackageName();
         if (packageName == null || !MainActivity.isProtectedSessionActive(this)) {
             return;
@@ -54,7 +62,14 @@ public class ZeroEscapeAccessibilityService extends AccessibilityService {
         String currentPackage = packageName.toString();
         String ownPackage = getPackageName();
 
+        // Own app → nothing to do
         if (ownPackage.equals(currentPackage) || currentPackage.startsWith(ownPackage + ":")) {
+            return;
+        }
+
+        // Pure framework events (package="android") carry no visible screen — skip them
+        // to avoid re-entry loops during internal transitions.
+        if ("android".equals(currentPackage)) {
             return;
         }
 
@@ -65,9 +80,10 @@ public class ZeroEscapeAccessibilityService extends AccessibilityService {
 
         lastBringToFrontAt = now;
 
-        // Collapse transient system surfaces when possible, then immediately relaunch app.
-        performGlobalAction(GLOBAL_ACTION_BACK);
-
+        // Bring our app back to the foreground.
+        // NOTE: GLOBAL_ACTION_BACK was intentionally removed — firing it on an external
+        // activity (launcher, system UI) triggered cascading accessibility events that
+        // caused the app to loop between screens.  A direct relaunch is sufficient.
         Intent reopenIntent = getPackageManager().getLaunchIntentForPackage(ownPackage);
         if (reopenIntent == null) {
             return;

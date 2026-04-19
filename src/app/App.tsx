@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom';
 import { SplashScreen } from './components/SplashScreen';
 import { LoginScreen } from './components/LoginScreen';
 import { SignUpScreen } from './components/SignUpScreen';
@@ -19,6 +19,7 @@ import { GuestExpirationScreen } from './components/GuestExpirationScreen';
 import { SubscriptionScreen } from './components/SubscriptionScreen';
 import { useAuthStore } from '../store/authStore';
 import { usePreferencesStore } from '../store/preferencesStore';
+import { useSessionStore } from '../store/sessionStore';
 import { useEffect } from 'react';
 import type { ReactNode } from 'react';
 import { authService } from '../services/authService';
@@ -198,6 +199,35 @@ export default function App() {
 function AppRoutes() {
   const { showExitDialog, dismissExitDialog, confirmExit } = useAndroidBack();
   const { user } = useAuthStore();
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  // Global session recovery: when the native layer calls onAndroidResume (app returns
+  // from background) and a session is active but we're not on the session screen,
+  // navigate back with the correct remaining time so the countdown continues.
+  useEffect(() => {
+    const handleResume = () => {
+      const session = useSessionStore.getState().activeSession;
+      if (session && location.pathname !== '/active-session') {
+        const elapsed = Math.floor((Date.now() - session.startedAt) / 1000);
+        const remainingSeconds = Math.max(1, session.durationMinutes * 60 - elapsed);
+        navigate('/active-session', {
+          replace: true,
+          state: { mode: session.mode, duration: session.durationMinutes, remainingSeconds },
+        });
+      }
+    };
+
+    // Register — ActiveSessionScreen will override this when it mounts (its own handler
+    // handles immersive-mode re-entry while already on the session screen).
+    (window as Window & { onAndroidResume?: () => void }).onAndroidResume = handleResume;
+
+    return () => {
+      // Only clear if this component's handler is still the active one
+      const w = window as Window & { onAndroidResume?: () => void };
+      if (w.onAndroidResume === handleResume) delete w.onAndroidResume;
+    };
+  }, [navigate, location.pathname]);
 
   return (
     <>
