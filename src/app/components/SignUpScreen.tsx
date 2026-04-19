@@ -19,6 +19,7 @@ const authErrorMessages: Record<string, string> = {
   'auth/weak-password': 'كلمة المرور ضعيفة. استخدم 8 أحرف على الأقل.',
   'auth/operation-not-allowed': 'تسجيل البريد الإلكتروني غير مفعّل في Firebase.',
   'auth/network-request-failed': 'مشكلة في الاتصال. تحقق من الإنترنت.',
+  'auth/timeout': 'انتهت مهلة الاتصال. تحقق من الإنترنت وأعد المحاولة.',
 };
 
 export function SignUpScreen() {

@@ -204,7 +204,16 @@ export const authService = {
   },
 
   signUpWithEmail: async (name: string, email: string, password: string): Promise<User> => {
-    const result = await createUserWithEmailAndPassword(auth, email, password);
+    // Wrap Firebase Auth call with a timeout — on Android WebView it can hang
+    const result = await Promise.race([
+      createUserWithEmailAndPassword(auth, email, password),
+      new Promise<never>((_, reject) =>
+        setTimeout(
+          () => reject(Object.assign(new Error('sign-up timed out'), { code: 'auth/timeout' })),
+          15000
+        )
+      ),
+    ]);
     const userDoc: User = {
       id: result.user.uid,
       email: result.user.email,
@@ -330,11 +339,29 @@ export const authService = {
       }
 
       try {
-        const user = await authService.normalizeFirebaseUser(firebaseUser);
+        // Race Firestore normalization against a 6-second timeout
+        const user = await Promise.race([
+          authService.normalizeFirebaseUser(firebaseUser),
+          new Promise<never>((_, reject) =>
+            setTimeout(() => reject(new Error('firestore-timeout')), 6000)
+          ),
+        ]);
         onResolved(user);
       } catch (error) {
-        console.error('Auth sync error:', error);
-        onResolved(null);
+        // Never call onResolved(null) here — that would log out a freshly
+        // signed-up user whose Firestore doc hasn't been written yet.
+        // Instead, build a minimal user from Firebase Auth data.
+        console.warn('Auth sync: Firestore unavailable, using Auth fallback', error);
+        const fallback: User = {
+          id: firebaseUser.uid,
+          email: firebaseUser.email,
+          name: firebaseUser.displayName,
+          type: 'email',
+          subscriptionStatus: 'free',
+          deviceId: localStorage.getItem('zeroEscape_deviceId') || '',
+          createdAt: Date.now(),
+        };
+        onResolved(fallback);
       }
     });
   },
