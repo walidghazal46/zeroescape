@@ -1,25 +1,5 @@
 import { BrowserRouter, Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom';
-import { SplashScreen } from './components/SplashScreen';
-import { LoginScreen } from './components/LoginScreen';
-import { SignUpScreen } from './components/SignUpScreen';
-import { OnboardingScreen } from './components/OnboardingScreen';
-import { PermissionsScreen } from './components/PermissionsScreen';
-import { HomeScreen } from './components/HomeScreen';
-import { StartSessionScreen } from './components/StartSessionScreen';
-import { BlockedAppsScreen } from './components/BlockedAppsScreen';
-import { WebProtectionScreen } from './components/WebProtectionScreen';
-import { ActiveSessionScreen } from './components/ActiveSessionScreen';
-import { BlockInterceptScreen } from './components/BlockInterceptScreen';
-import { RestartRecoveryScreen } from './components/RestartRecoveryScreen';
-import { EmergencyExitScreen } from './components/EmergencyExitScreen';
-import { SessionCompleteScreen } from './components/SessionCompleteScreen';
-import { StatisticsScreen } from './components/StatisticsScreen';
-import { SettingsScreen } from './components/SettingsScreen';
-import { GuestExpirationScreen } from './components/GuestExpirationScreen';
-import { SubscriptionScreen } from './components/SubscriptionScreen';
-import { ScheduleScreen } from './components/ScheduleScreen';
-import { AdminPinScreen } from './components/AdminPinScreen';
-import { AdminScreen } from './components/AdminScreen';
+import { lazy, Suspense } from 'react';
 import { useAuthStore } from '../store/authStore';
 import { usePreferencesStore } from '../store/preferencesStore';
 import { useSessionStore } from '../store/sessionStore';
@@ -27,6 +7,30 @@ import { useEffect } from 'react';
 import type { ReactNode } from 'react';
 import { authService } from '../services/authService';
 import { useAndroidBack } from '../hooks/useAndroidBack';
+
+// ── Lazy-loaded screens (code-split per route) ────────────────────────────────
+const SplashScreen            = lazy(() => import('./components/SplashScreen').then(m => ({ default: m.SplashScreen })));
+const LoginScreen             = lazy(() => import('./components/LoginScreen').then(m => ({ default: m.LoginScreen })));
+const SignUpScreen            = lazy(() => import('./components/SignUpScreen').then(m => ({ default: m.SignUpScreen })));
+const OnboardingScreen        = lazy(() => import('./components/OnboardingScreen').then(m => ({ default: m.OnboardingScreen })));
+const PermissionsScreen       = lazy(() => import('./components/PermissionsScreen').then(m => ({ default: m.PermissionsScreen })));
+const HomeScreen              = lazy(() => import('./components/HomeScreen').then(m => ({ default: m.HomeScreen })));
+const StartSessionScreen      = lazy(() => import('./components/StartSessionScreen').then(m => ({ default: m.StartSessionScreen })));
+const BlockedAppsScreen       = lazy(() => import('./components/BlockedAppsScreen').then(m => ({ default: m.BlockedAppsScreen })));
+const WebProtectionScreen     = lazy(() => import('./components/WebProtectionScreen').then(m => ({ default: m.WebProtectionScreen })));
+const ActiveSessionScreen     = lazy(() => import('./components/ActiveSessionScreen').then(m => ({ default: m.ActiveSessionScreen })));
+const BlockInterceptScreen    = lazy(() => import('./components/BlockInterceptScreen').then(m => ({ default: m.BlockInterceptScreen })));
+const RestartRecoveryScreen   = lazy(() => import('./components/RestartRecoveryScreen').then(m => ({ default: m.RestartRecoveryScreen })));
+const EmergencyExitScreen     = lazy(() => import('./components/EmergencyExitScreen').then(m => ({ default: m.EmergencyExitScreen })));
+const SessionCompleteScreen   = lazy(() => import('./components/SessionCompleteScreen').then(m => ({ default: m.SessionCompleteScreen })));
+const StatisticsScreen        = lazy(() => import('./components/StatisticsScreen').then(m => ({ default: m.StatisticsScreen })));
+const SettingsScreen          = lazy(() => import('./components/SettingsScreen').then(m => ({ default: m.SettingsScreen })));
+const GuestExpirationScreen   = lazy(() => import('./components/GuestExpirationScreen').then(m => ({ default: m.GuestExpirationScreen })));
+const SubscriptionScreen      = lazy(() => import('./components/SubscriptionScreen').then(m => ({ default: m.SubscriptionScreen })));
+const ScheduleScreen          = lazy(() => import('./components/ScheduleScreen').then(m => ({ default: m.ScheduleScreen })));
+const AdminPinScreen          = lazy(() => import('./components/AdminPinScreen').then(m => ({ default: m.AdminPinScreen })));
+const AdminScreen             = lazy(() => import('./components/AdminScreen').then(m => ({ default: m.AdminScreen })));
+
 
 /** Detects genuine Android WebView (Capacitor / custom bridge) */
 function isAndroidApp(): boolean {
@@ -256,6 +260,11 @@ function AppRoutes() {
 
   return (
     <>
+    <Suspense fallback={
+      <div className="fixed inset-0 bg-slate-950 flex items-center justify-center">
+        <div className="w-10 h-10 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
+      </div>
+    }>
     <Routes>
       <Route path="/" element={<SplashScreen />} />
       <Route path="/login" element={<LoginScreen />} />
@@ -281,6 +290,7 @@ function AppRoutes() {
       <Route path="/admin" element={<AdminScreen />} />
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
+    </Suspense>
     {/* ── In-app exit confirmation dialog ─────────────────────────────── */}
     {showExitDialog && (
       <div

@@ -3,16 +3,15 @@
  * ────────────────────────────────────────────────────────────────────
  * A 6-digit PIN gate that protects the Admin Dashboard.
  * Only visible/reachable if the current user's email is ADMIN_EMAIL.
- * The PIN is hardcoded for now (793131); replace with a server-side
- * check or hashed comparison before production hardening.
+ * PIN is fetched from Firebase Remote Config (key: admin_pin).
+ * The default value '793131' is used until Remote Config responds.
  */
 import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ChevronRight, ShieldCheck, AlertCircle } from 'lucide-react';
 import { useAuthStore, ADMIN_EMAIL } from '../../store/authStore';
+import { getAdminPin } from '../../config/firebase';
 
-// Admin PIN — move to env / server-side check before publishing to prod
-const ADMIN_PIN = '793131';
 const PIN_LENGTH = 6;
 
 export function AdminPinScreen() {
@@ -21,6 +20,7 @@ export function AdminPinScreen() {
   const [pin, setPin] = useState('');
   const [error, setError] = useState('');
   const [attempts, setAttempts] = useState(0);
+  const [adminPin, setAdminPin] = useState('793131'); // default until fetched
   const inputRef = useRef<HTMLInputElement>(null);
 
   // Security: redirect if not admin
@@ -29,6 +29,13 @@ export function AdminPinScreen() {
       navigate('/home', { replace: true });
     }
   }, [user, navigate]);
+
+  // Fetch PIN from Remote Config on mount
+  useEffect(() => {
+    getAdminPin().then(setAdminPin).catch(() => {
+      // Keep default — non-fatal
+    });
+  }, []);
 
   useEffect(() => {
     // Focus the hidden input on mount
@@ -51,7 +58,7 @@ export function AdminPinScreen() {
   };
 
   const verifyPin = (entered: string) => {
-    if (entered === ADMIN_PIN) {
+    if (entered === adminPin) {
       navigate('/admin', { replace: true });
     } else {
       const next = attempts + 1;

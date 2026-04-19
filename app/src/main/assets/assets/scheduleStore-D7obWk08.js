@@ -1,0 +1,6 @@
+import{c as r}from"./createLucideIcon-D6uLTmh6.js";import{d as u,p as h,v as i}from"./index-BfcJmr39.js";/**
+ * @license lucide-react v0.487.0 - ISC
+ *
+ * This source code is licensed under the ISC license.
+ * See the LICENSE file in the root directory of this source tree.
+ */const f=[["path",{d:"M8 2v4",key:"1cmpym"}],["path",{d:"M16 2v4",key:"4m81vk"}],["rect",{width:"18",height:"18",x:"3",y:"4",rx:"2",key:"1hopcy"}],["path",{d:"M3 10h18",key:"8toen8"}]],m=r("calendar",f),g=u()(h((a,l)=>({schedules:[],addSchedule:s=>{const d={...s,id:i()};return a(e=>({schedules:[...e.schedules,d]})),d},updateSchedule:(s,d)=>{a(e=>({schedules:e.schedules.map(t=>t.id===s?{...t,...d}:t)}))},deleteSchedule:s=>{a(d=>({schedules:d.schedules.filter(e=>e.id!==s)}))},toggleSchedule:s=>{a(d=>({schedules:d.schedules.map(e=>e.id===s?{...e,enabled:!e.enabled}:e)}))},getNextSchedule:()=>{const s=new Date,d=l().schedules.filter(t=>t.enabled&&t.days.length>0);let e=null;for(const t of d)for(let n=0;n<7;n++){const c=new Date(s);c.setDate(c.getDate()+n),c.setHours(t.startHour,t.startMinute,0,0);const o=c.getDay();if(t.days.includes(o)&&!(c<=s)){(!e||c<e.firesAt)&&(e={entry:t,firesAt:c});break}}return e}}),{name:"zeroescape-schedules"}));export{m as C,g as u};
