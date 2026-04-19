@@ -111,11 +111,13 @@ export const authService = {
       }
     }
 
-    // Bind device in background
-    if (deviceId) {
-      subscriptionService.bindDevice(deviceId, firebaseUser.uid, firebaseUser.email).catch(
-        e => console.warn('bindDevice non-fatal:', e)
-      );
+    // ── Device trial check: reuse trial window from device if set ───────
+    // (skip for admin — admin always gets 'active')
+    let deviceRegisteredTrialEndAt: number | null = null;
+    if (!isAdmin && deviceId) {
+      deviceRegisteredTrialEndAt = await subscriptionService
+        .getDeviceTrialEndAt(deviceId, 'registered')
+        .catch(() => null);
     }
 
     if (existingUser.exists()) {
@@ -124,10 +126,10 @@ export const authService = {
       const now = Date.now();
       let accountStatus: AccountStatus = userDoc.accountStatus ?? 'registered_trial';
 
-      // If trialEndAt is missing, recover it from createdAt (or set fresh 7-day window)
-      // so a missing field never causes an immediate expiry.
+      // If trialEndAt is missing, recover from device-bound trial, then createdAt.
       const recoveredTrialEnd: number =
         userDoc.trialEndAt ??
+        deviceRegisteredTrialEndAt ??
         (userDoc.createdAt
           ? userDoc.createdAt + REGISTERED_TRIAL_DAYS * 24 * 60 * 60 * 1000
           : now + REGISTERED_TRIAL_DAYS * 24 * 60 * 60 * 1000);
@@ -162,6 +164,14 @@ export const authService = {
         ...extraFields,
       }, { merge: true });
 
+      // Bind device and record trial (no-op if already recorded)
+      if (deviceId) {
+        const trialEnd = userDoc.trialEndAt ?? recoveredTrialEnd;
+        subscriptionService.bindDevice(deviceId, firebaseUser.uid, firebaseUser.email,
+          { type: 'registered', trialEndAt: trialEnd }
+        ).catch(e => console.warn('bindDevice non-fatal:', e));
+      }
+
       return {
         ...userDoc,
         isAdmin,
@@ -175,7 +185,10 @@ export const authService = {
 
     // ── New user — initialize with trial ─────────────────────────────────
     const now = Date.now();
-    const trialEndAt = now + REGISTERED_TRIAL_DAYS * 24 * 60 * 60 * 1000;
+    // Reuse device's existing registered-trial window if present (prevents multi-account abuse)
+    const trialEndAt = (!isAdmin && deviceRegisteredTrialEndAt)
+      ? deviceRegisteredTrialEndAt
+      : now + REGISTERED_TRIAL_DAYS * 24 * 60 * 60 * 1000;
 
     const fallbackUser: User = {
       id: firebaseUser.uid,
@@ -195,6 +208,13 @@ export const authService = {
       ...fallbackUser,
       lastLogin: serverTimestamp(),
     }, { merge: true });
+
+    // Bind device and record trial
+    if (deviceId && !isAdmin) {
+      subscriptionService.bindDevice(deviceId, firebaseUser.uid, firebaseUser.email,
+        { type: 'registered', trialEndAt }
+      ).catch(e => console.warn('bindDevice non-fatal:', e));
+    }
 
     return fallbackUser;
   },
@@ -285,7 +305,12 @@ export const authService = {
 
     const now = Date.now();
     const deviceId = localStorage.getItem('zeroEscape_deviceId') || '';
-    const trialEndAt = now + REGISTERED_TRIAL_DAYS * 24 * 60 * 60 * 1000;
+
+    // Check if device already has a registered trial recorded — reuse same window
+    const deviceRegisteredTrialEndAt = deviceId
+      ? await subscriptionService.getDeviceTrialEndAt(deviceId, 'registered').catch(() => null)
+      : null;
+    const trialEndAt = deviceRegisteredTrialEndAt ?? now + REGISTERED_TRIAL_DAYS * 24 * 60 * 60 * 1000;
 
     const userDoc: User = {
       id: result.user.uid,
@@ -309,11 +334,11 @@ export const authService = {
       console.warn('signUpWithEmail: Firestore write failed (non-fatal):', e)
     );
 
-    // Bind device in background
+    // Bind device and record registered trial window
     if (deviceId) {
-      subscriptionService.bindDevice(deviceId, result.user.uid, result.user.email).catch(
-        e => console.warn('bindDevice non-fatal:', e)
-      );
+      subscriptionService.bindDevice(deviceId, result.user.uid, result.user.email,
+        { type: 'registered', trialEndAt }
+      ).catch(e => console.warn('bindDevice non-fatal:', e));
     }
 
     return userDoc;
@@ -323,17 +348,25 @@ export const authService = {
     try {
       const result = await signInAnonymously(auth);
       const now = Date.now();
+      const deviceId = localStorage.getItem('zeroEscape_deviceId') || '';
+
+      // Check if this device already has a guest trial recorded
+      const deviceGuestTrialEndAt = deviceId
+        ? await subscriptionService.getDeviceTrialEndAt(deviceId, 'guest').catch(() => null)
+        : null;
+      const trialEndAt = deviceGuestTrialEndAt ?? now + GUEST_TRIAL_DAYS * 24 * 60 * 60 * 1000;
+
       const guestUser: User = {
         id: result.user.uid,
         email: null,
         name: 'ضيف',
         type: 'guest',
         accountStatus: 'guest_trial',
-        trialStartAt: now,
-        trialEndAt: now + GUEST_TRIAL_DAYS * 24 * 60 * 60 * 1000,
-        guestExpiresAt: now + GUEST_TRIAL_DAYS * 24 * 60 * 60 * 1000,
+        trialStartAt: deviceGuestTrialEndAt ? trialEndAt - GUEST_TRIAL_DAYS * 24 * 60 * 60 * 1000 : now,
+        trialEndAt,
+        guestExpiresAt: trialEndAt,
         subscriptionStatus: 'free',
-        deviceId: localStorage.getItem('zeroEscape_deviceId') || '',
+        deviceId,
         createdAt: now,
       };
 
@@ -342,6 +375,13 @@ export const authService = {
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp(),
       }, { merge: true });
+
+      // Bind device and record guest trial (no-op if already recorded)
+      if (deviceId) {
+        subscriptionService.bindDevice(deviceId, result.user.uid, null, { type: 'guest', trialEndAt }).catch(
+          e => console.warn('bindDevice non-fatal:', e)
+        );
+      }
 
       return guestUser;
     } catch (error) {

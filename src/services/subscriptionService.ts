@@ -187,14 +187,37 @@ export const subscriptionService = {
   },
 
   /** Bind a device to a user. Called after successful login. */
-  bindDevice: async (deviceId: string, userId: string, email: string | null): Promise<void> => {
+  bindDevice: async (
+    deviceId: string,
+    userId: string,
+    email: string | null,
+    trialInfo?: { type: 'guest' | 'registered'; trialEndAt: number },
+  ): Promise<void> => {
+    const snap = await getDoc(doc(db, 'devices', deviceId));
+    const existing = snap.exists() ? snap.data() : null;
+    const trialField = trialInfo?.type === 'guest' ? 'guestTrialEndAt' : 'registeredTrialEndAt';
     await setDoc(doc(db, 'devices', deviceId), {
       userId,
       email: email ?? '',
       boundAt: serverTimestamp(),
       lastSeen: serverTimestamp(),
       platform: 'android',
-    });
+      // Only write trial end if not already recorded for this type
+      ...(trialInfo && !existing?.[trialField] ? { [trialField]: trialInfo.trialEndAt } : {}),
+    }, { merge: true });
+  },
+
+  /** Get the trial end timestamp stored for this device, or null if never had a trial. */
+  getDeviceTrialEndAt: async (deviceId: string, type: 'guest' | 'registered'): Promise<number | null> => {
+    try {
+      const snap = await getDoc(doc(db, 'devices', deviceId));
+      if (!snap.exists()) return null;
+      const field = type === 'guest' ? 'guestTrialEndAt' : 'registeredTrialEndAt';
+      const val = snap.data()[field];
+      return typeof val === 'number' ? val : null;
+    } catch {
+      return null;
+    }
   },
 
   /** Unbind a device (admin action). */

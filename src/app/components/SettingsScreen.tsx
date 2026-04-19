@@ -96,6 +96,25 @@ export function SettingsScreen() {
 
       <div className="space-y-5">
         {/* ── Subscription Card ──────────────────────────────────────────────── */}
+        {isAdmin ? (
+          <div>
+            <p className="text-slate-500 text-xs mb-3 px-1">{isArabic ? 'الاشتراك' : 'Subscription'}</p>
+            <div className="rounded-2xl border border-violet-500/30 bg-gradient-to-br from-violet-500/10 to-blue-500/5 p-4">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-violet-600 to-blue-600 flex items-center justify-center flex-shrink-0 shadow-lg shadow-violet-500/30">
+                  <Crown className="w-5 h-5 text-white" />
+                </div>
+                <div className="flex-1 text-right">
+                  <p className="text-white font-bold text-sm">{isArabic ? 'أدمن · وصول كامل دائم' : 'Admin · Full Access'}</p>
+                  <p className="text-violet-400 text-xs mt-0.5">{isArabic ? 'جميع الميزات مفتوحة بلا قيود' : 'All features unlocked, no limits'}</p>
+                </div>
+                <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-violet-500/20 text-violet-400">
+                  {isArabic ? 'نشط ∞' : 'Active ∞'}
+                </span>
+              </div>
+            </div>
+          </div>
+        ) : (
         <div>
           <p className="text-slate-500 text-xs mb-3 px-1">{isArabic ? 'الاشتراك' : 'Subscription'}</p>
           <div
@@ -179,6 +198,7 @@ export function SettingsScreen() {
             </button>
           </div>
         </div>
+        )}
 
         {/* ── Admin Entry (only for admin email) ──────────────────────────────── */}
         {isAdmin && (
