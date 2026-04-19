@@ -20,6 +20,14 @@ export default defineConfig({
   assetsInclude: ['**/*.svg', '**/*.csv'],
 
   build: {
+    // Production hardening for distributed bundles
+    sourcemap: false,
+    minify: 'esbuild',
+    // Strip debug traces from production artifacts
+    esbuild: {
+      drop: ['console', 'debugger'],
+      legalComments: 'none',
+    },
     rollupOptions: {
       output: {
         manualChunks: {
