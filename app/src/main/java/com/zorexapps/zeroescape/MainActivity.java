@@ -2,6 +2,7 @@ package com.zorexapps.zeroescape;
 
 import android.app.AlertDialog;
 import android.app.AppOpsManager;
+import android.content.SharedPreferences;
 import android.app.admin.DevicePolicyManager;
 import android.content.ComponentName;
 import android.content.Context;
@@ -38,6 +39,8 @@ import org.json.JSONObject;
 public class MainActivity extends AppCompatActivity {
     // Firebase Web Client ID used to request ID token from Google Sign-In SDK.
     private static final String WEB_CLIENT_ID = "369702806773-ecc5j2fs14ha5pl3rctiv67li7a02e1v.apps.googleusercontent.com";
+    private static final String PREFS_NAME = "zeroescape_runtime";
+    private static final String KEY_PROTECTED_SESSION_ACTIVE = "protected_session_active";
 
     private WebView webView;
     private DevicePolicyManager devicePolicyManager;
@@ -48,6 +51,36 @@ public class MainActivity extends AppCompatActivity {
     private ActivityResultLauncher<Intent> deviceAdminLauncher;
     private boolean vpnServiceRunning = false;
     private boolean sessionActive = false;
+
+    public static boolean isProtectedSessionActive(Context context) {
+        SharedPreferences prefs = context.getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
+        return prefs.getBoolean(KEY_PROTECTED_SESSION_ACTIVE, false);
+    }
+
+    private void persistProtectedSessionState(boolean active) {
+        SharedPreferences prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
+        prefs.edit().putBoolean(KEY_PROTECTED_SESSION_ACTIVE, active).apply();
+    }
+
+    private void startProtectedLockTask() {
+        runOnUiThread(() -> {
+            try {
+                startLockTask();
+            } catch (IllegalArgumentException | IllegalStateException ignored) {
+                // Lock task is best-effort unless the app is pinned or whitelisted.
+            }
+        });
+    }
+
+    private void stopProtectedLockTask() {
+        runOnUiThread(() -> {
+            try {
+                stopLockTask();
+            } catch (IllegalArgumentException | IllegalStateException ignored) {
+                // Ignore when lock task was never entered.
+            }
+        });
+    }
 
     /** Re-applies immersive sticky mode on the UI thread. */
     private void applyImmersiveMode() {
@@ -328,7 +361,9 @@ public class MainActivity extends AppCompatActivity {
         @JavascriptInterface
         public void startImmersiveMode() {
             sessionActive = true;
+            persistProtectedSessionState(true);
             runOnUiThread(() -> getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON));
+            startProtectedLockTask();
             applyImmersiveMode();
         }
 
@@ -336,6 +371,8 @@ public class MainActivity extends AppCompatActivity {
         @JavascriptInterface
         public void stopImmersiveMode() {
             sessionActive = false;
+            persistProtectedSessionState(false);
+            stopProtectedLockTask();
             runOnUiThread(() -> {
                 getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
@@ -359,11 +396,14 @@ public class MainActivity extends AppCompatActivity {
         @JavascriptInterface
         public void setSessionActive(boolean active) {
             sessionActive = active;
+            persistProtectedSessionState(active);
             if (active) {
                 runOnUiThread(() -> getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON));
+                startProtectedLockTask();
                 applyImmersiveMode();
             } else {
                 runOnUiThread(() -> getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON));
+                stopProtectedLockTask();
             }
         }
 

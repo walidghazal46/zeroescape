@@ -2,6 +2,8 @@ package com.zorexapps.zeroescape;
 
 import android.accessibilityservice.AccessibilityService;
 import android.accessibilityservice.AccessibilityServiceInfo;
+import android.content.Intent;
+import android.os.SystemClock;
 import android.view.accessibility.AccessibilityEvent;
 
 /**
@@ -14,9 +16,11 @@ import android.view.accessibility.AccessibilityEvent;
  * closed immediately during an active session.
  */
 public class ZeroEscapeAccessibilityService extends AccessibilityService {
+    private static final long RELAUNCH_THROTTLE_MS = 1200;
 
     /** Singleton reference so MainActivity can query it. */
     private static ZeroEscapeAccessibilityService instance;
+    private long lastBringToFrontAt = 0L;
 
     public static ZeroEscapeAccessibilityService getInstance() {
         return instance;
@@ -42,8 +46,39 @@ public class ZeroEscapeAccessibilityService extends AccessibilityService {
 
     @Override
     public void onAccessibilityEvent(AccessibilityEvent event) {
-        // Reserved for future: detect and close blocked apps during active session.
-        // The service itself being enabled is sufficient for the permission check.
+        CharSequence packageName = event.getPackageName();
+        if (packageName == null || !MainActivity.isProtectedSessionActive(this)) {
+            return;
+        }
+
+        String currentPackage = packageName.toString();
+        String ownPackage = getPackageName();
+
+        if (ownPackage.equals(currentPackage) || currentPackage.startsWith(ownPackage + ":")) {
+            return;
+        }
+
+        long now = SystemClock.elapsedRealtime();
+        if (now - lastBringToFrontAt < RELAUNCH_THROTTLE_MS) {
+            return;
+        }
+
+        lastBringToFrontAt = now;
+
+        // Collapse transient system surfaces when possible, then immediately relaunch app.
+        performGlobalAction(GLOBAL_ACTION_BACK);
+
+        Intent reopenIntent = getPackageManager().getLaunchIntentForPackage(ownPackage);
+        if (reopenIntent == null) {
+            return;
+        }
+
+        reopenIntent.addFlags(
+            Intent.FLAG_ACTIVITY_NEW_TASK
+                | Intent.FLAG_ACTIVITY_SINGLE_TOP
+                | Intent.FLAG_ACTIVITY_CLEAR_TOP
+        );
+        startActivity(reopenIntent);
     }
 
     @Override
