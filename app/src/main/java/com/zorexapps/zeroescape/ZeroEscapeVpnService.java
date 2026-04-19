@@ -8,8 +8,6 @@ import android.content.Intent;
 import android.net.VpnService;
 import android.os.Build;
 import android.os.ParcelFileDescriptor;
-import android.util.Log;
-
 import androidx.core.app.NotificationCompat;
 
 import java.io.FileInputStream;
@@ -179,7 +177,7 @@ public class ZeroEscapeVpnService extends VpnService {
             executor.submit(this::processPackets);
 
         } catch (Exception e) {
-            Log.e(TAG, "VPN start failed", e);
+            // Non-fatal: service will stop itself
             stopSelf();
         }
     }
@@ -248,7 +246,7 @@ public class ZeroEscapeVpnService extends VpnService {
                 out.write(reply);
             }
         } catch (Exception e) {
-            if (running.get()) Log.e(TAG, "Packet loop error", e);
+            // Loop ended — VPN service will stop normally
         }
     }
 

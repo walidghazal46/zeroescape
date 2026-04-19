@@ -1,8 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <device-admin xmlns:android="http://schemas.android.com/apk/res/android">
     <uses-policies>
-        <!-- Prevents the app from being uninstalled while it's a device admin -->
-        <wipe-data />
+        <!-- Used to lock the screen at the end of a session or on admin request -->
         <force-lock />
     </uses-policies>
 </device-admin>
