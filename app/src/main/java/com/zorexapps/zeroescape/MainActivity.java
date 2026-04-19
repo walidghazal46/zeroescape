@@ -14,7 +14,7 @@ import android.provider.Settings;
 import android.view.View;
 import android.view.WindowInsets;
 import android.view.WindowInsetsController;
-import android.view.accessibility.AccessibilityManager;
+import android.view.accessibility.AccessibilityManager; // kept for potential future use
 import android.webkit.JavascriptInterface;
 import android.webkit.WebResourceRequest;
 import android.webkit.WebResourceResponse;
@@ -201,8 +201,8 @@ public class MainActivity extends AppCompatActivity {
 
         @JavascriptInterface
         public boolean isAccessibilityGranted() {
-            AccessibilityManager am = (AccessibilityManager) getSystemService(Context.ACCESSIBILITY_SERVICE);
-            return am != null && am.isEnabled();
+            // Check if OUR specific service is enabled (not just any accessibility service)
+            return ZeroEscapeAccessibilityService.isRunning();
         }
 
         @JavascriptInterface

@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">zeroescape</string>
+    <string name="accessibility_service_description">يستخدم ZeroEscape هذه الخدمة لاكتشاف التطبيقات المفتوحة وإغلاقها فورًا أثناء جلسة التركيز.</string>
 </resources>
