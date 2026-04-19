@@ -6,6 +6,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
  * to exit the app instead of navigating backwards.
  */
 const EXIT_ROUTES = new Set(['/', '/home', '/login', '/signup']);
+const SESSION_LOCKED_ROUTES = new Set(['/active-session', '/emergency-exit']);
 
 /**
  * Registers window.onAndroidBack so MainActivity can call it when the
@@ -25,6 +26,10 @@ export function useAndroidBack(): {
   const [showExitDialog, setShowExitDialog] = useState(false);
 
   useEffect(() => {
+    if (SESSION_LOCKED_ROUTES.has(location.pathname)) {
+      return;
+    }
+
     (window as any).onAndroidBack = () => {
       if (EXIT_ROUTES.has(location.pathname)) {
         const androidBridge = (window as any).Android;

@@ -58,7 +58,27 @@ export const useAuthStore = create<AuthStore>()(
       isLoading: true,
       deviceId: getDeviceId(),
 
-      setUser: (user) => set({ user, isLoading: false }),
+      setUser: (user) => {
+        const previousUser = get().user;
+
+        if (!user) {
+          set({ user: null, isLoading: false });
+          return;
+        }
+
+        const isSameUser =
+          previousUser != null &&
+          (previousUser.id === user.id ||
+            (previousUser.email != null && previousUser.email === user.email));
+
+        const mergedUser: User = {
+          ...user,
+          emergencyPin: user.emergencyPin ?? (isSameUser ? previousUser?.emergencyPin : undefined),
+          emergencyExitLog: user.emergencyExitLog ?? (isSameUser ? previousUser?.emergencyExitLog : undefined),
+        };
+
+        set({ user: mergedUser, isLoading: false });
+      },
 
       setLoading: (isLoading) => set({ isLoading }),
 

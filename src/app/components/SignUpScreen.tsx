@@ -24,7 +24,7 @@ const authErrorMessages: Record<string, string> = {
 
 export function SignUpScreen() {
   const navigate = useNavigate();
-  const { setUser, setEmergencyPin } = useAuthStore();
+  const { setUser } = useAuthStore();
 
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
@@ -78,9 +78,11 @@ export function SignUpScreen() {
     setIsSubmitting(true);
     try {
       const user = await authService.signUpWithEmail(name, email, password);
-      // Save emergency PIN to local store (persisted via zustand)
-      setEmergencyPin(emergencyPin);
-      setUser(user);
+      setUser({
+        ...user,
+        emergencyPin,
+        emergencyExitLog: [],
+      });
       navigate('/onboarding');
     } catch (err) {
       const code = getAuthErrorCode(err);
