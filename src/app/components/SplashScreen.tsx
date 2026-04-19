@@ -9,11 +9,10 @@ export function SplashScreen() {
   const { onboardingCompleted } = usePreferencesStore();
 
   useEffect(() => {
-    const timer = setTimeout(() => {
-      if (isLoading) {
-        return;
-      }
+    // Don't start the timer until auth has resolved
+    if (isLoading) return;
 
+    const timer = setTimeout(() => {
       if (!user) {
         navigate('/login');
         return;
@@ -25,7 +24,7 @@ export function SplashScreen() {
       }
 
       navigate(onboardingCompleted ? '/home' : '/onboarding');
-    }, 1500);
+    }, 800);
 
     return () => clearTimeout(timer);
   }, [navigate, user, isLoading, isGuestExpired, onboardingCompleted]);

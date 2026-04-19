@@ -1,9 +1,18 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Mail, Lock, Eye, EyeOff, Chrome, LogIn, Zap } from 'lucide-react';
+import { Mail, Lock, Eye, EyeOff, Chrome, LogIn, Zap, Smartphone } from 'lucide-react';
 import { useAuthStore } from '../../store/authStore';
 import { authService, getAuthErrorCode } from '../../services/authService';
 import { usePreferencesStore } from '../../store/preferencesStore';
+
+const isMobileApp = (): boolean => {
+  const ua = navigator.userAgent || '';
+  return (
+    /Android.*wv/.test(ua) ||
+    typeof (window as Window & { Android?: unknown }).Android !== 'undefined' ||
+    typeof (window as Window & { Capacitor?: unknown }).Capacitor !== 'undefined'
+  );
+};
 
 const getAuthErrorMessage = (
   code: string,
@@ -139,14 +148,26 @@ export function LoginScreen() {
   const androidBridge = (window as Window & { Android?: { startGoogleSignIn?: () => void } }).Android;
   const isAndroidWebView = typeof androidBridge !== 'undefined';
   const hasNativeGoogleSignIn = typeof androidBridge?.startGoogleSignIn === 'function';
-  const [tab, setTab] = useState<'login' | 'signup' | 'guest'>('login');
+  const [tab, setTab] = useState<'login' | 'guest'>('login');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [name, setName] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { language: lang, setLanguage } = usePreferencesStore();
+
+  // Block non-mobile access at component level (second safety layer after MobileOnlyGuard)
+  if (!isMobileApp()) {
+    return (
+      <div dir="rtl" className="fixed inset-0 bg-slate-950 flex flex-col items-center justify-center gap-6 px-6 text-center">
+        <Smartphone className="w-14 h-14 text-sky-400" />
+        <div>
+          <h2 className="text-white text-xl font-bold mb-2">تسجيل الدخول متاح على الموبايل فقط</h2>
+          <p className="text-slate-400 text-sm">حمّل التطبيق على هاتفك الأندرويد</p>
+        </div>
+      </div>
+    );
+  }
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -159,22 +180,6 @@ export function LoginScreen() {
       navigate(onboardingCompleted ? '/home' : '/onboarding');
     } catch (error) {
       setError(getAuthErrorMessage(getAuthErrorCode(error), lang, 'login'));
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  const handleSignUp = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError('');
-    setIsSubmitting(true);
-
-    try {
-      const user = await authService.signUpWithEmail(name, email, password);
-      setUser(user);
-      navigate('/onboarding');
-    } catch (error) {
-      setError(getAuthErrorMessage(getAuthErrorCode(error), lang, 'signup'));
     } finally {
       setIsSubmitting(false);
     }
@@ -225,11 +230,7 @@ export function LoginScreen() {
             <img
               src="/icon.png"
               alt="ZeroEscape"
-              className={`relative rounded-xl object-cover ${
-                tab === 'signup'
-                  ? 'h-[120px] w-[120px] md:h-[220px] md:w-[220px]'
-                  : 'h-[160px] w-[160px] md:h-[270px] md:w-[270px]'
-              }`}
+              className="relative rounded-xl object-cover h-[160px] w-[160px] md:h-[270px] md:w-[270px]"
             />
           </div>
         </div>
@@ -265,12 +266,8 @@ export function LoginScreen() {
           {lang === 'ar' ? 'دخول' : 'Login'}
         </button>
         <button
-          onClick={() => setTab('signup')}
-          className={`flex-1 rounded-xl py-2.5 text-sm font-medium transition md:py-3 md:text-base ${
-            tab === 'signup'
-              ? 'bg-gradient-to-r from-sky-600 to-cyan-700 text-white'
-              : 'text-slate-400 hover:text-slate-300'
-          }`}
+          onClick={() => navigate('/signup')}
+          className="flex-1 rounded-xl py-2.5 text-sm font-medium transition md:py-3 md:text-base text-slate-400 hover:text-slate-300"
         >
           {lang === 'ar' ? 'إنشاء حساب' : 'Sign Up'}
         </button>
@@ -373,95 +370,6 @@ export function LoginScreen() {
             >
               <LogIn className="h-5 w-5" />
               {isSubmitting ? (lang === 'ar' ? 'جاري التنفيذ...' : 'Please wait...') : (lang === 'ar' ? 'تسجيل الدخول' : 'Sign In')}
-            </button>
-
-            <div className="mt-2 flex items-center justify-end gap-2 md:hidden">
-              <button
-                onClick={() => setLanguage('ar')}
-                className={`px-2 py-1 rounded text-xs font-medium transition ${
-                  lang === 'ar' ? 'bg-sky-600 text-white' : 'bg-slate-900 text-slate-400'
-                }`}
-              >
-                العربية
-              </button>
-              <button
-                onClick={() => setLanguage('en')}
-                className={`px-2 py-1 rounded text-xs font-medium transition ${
-                  lang === 'en' ? 'bg-sky-600 text-white' : 'bg-slate-900 text-slate-400'
-                }`}
-              >
-                EN
-              </button>
-            </div>
-          </form>
-        )}
-
-        {tab === 'signup' && (
-          <form onSubmit={handleSignUp} className="space-y-3 md:space-y-5">
-            <div>
-              <label className="mb-2 block text-sm text-slate-400">
-                {lang === 'ar' ? 'الاسم الكامل' : 'Full Name'}
-              </label>
-              <input
-                type="text"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                placeholder={lang === 'ar' ? 'أحمد محمد' : 'John Doe'}
-                className="w-full rounded-2xl border border-slate-800 bg-slate-900 px-4 py-3 text-white placeholder:text-slate-600 transition focus:border-sky-500 focus:outline-none md:py-4"
-                required
-              />
-            </div>
-
-            <div>
-              <label className="mb-2 block text-sm text-slate-400">
-                {lang === 'ar' ? 'البريد الإلكتروني' : 'Email'}
-              </label>
-              <div className="relative">
-                <Mail className="absolute right-4 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-500" />
-                <input
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="example@email.com"
-                  className="w-full rounded-2xl border border-slate-800 bg-slate-900 px-4 py-3 pr-12 text-white placeholder:text-slate-600 transition focus:border-sky-500 focus:outline-none md:py-4"
-                  required
-                />
-              </div>
-            </div>
-
-            <div>
-              <label className="mb-2 block text-sm text-slate-400">
-                {lang === 'ar' ? 'كلمة المرور' : 'Password'}
-              </label>
-              <div className="relative">
-                <Lock className="absolute right-4 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-500" />
-                <input
-                  type={showPassword ? 'text' : 'password'}
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="••••••••"
-                  className="w-full rounded-2xl border border-slate-800 bg-slate-900 px-4 py-3 pl-12 pr-12 text-white placeholder:text-slate-600 transition focus:border-sky-500 focus:outline-none md:py-4"
-                  required
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-400"
-                >
-                  {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
-                </button>
-              </div>
-              <p className="mt-2 text-xs text-slate-500">
-                {lang === 'ar' ? 'يجب أن تحتوي على 8 أحرف على الأقل' : 'Must be at least 8 characters'}
-              </p>
-            </div>
-
-            <button
-              type="submit"
-              disabled={isSubmitting}
-              className="w-full rounded-2xl bg-gradient-to-r from-sky-600 to-cyan-700 py-3 text-white transition hover:opacity-90 md:py-4"
-            >
-              {isSubmitting ? (lang === 'ar' ? 'جاري التنفيذ...' : 'Please wait...') : (lang === 'ar' ? 'إنشاء الحساب' : 'Create Account')}
             </button>
 
             <div className="mt-2 flex items-center justify-end gap-2 md:hidden">

@@ -1,4 +1,5 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { Smartphone } from 'lucide-react';
 import { SplashScreen } from './components/SplashScreen';
 import { LoginScreen } from './components/LoginScreen';
 import { SignUpScreen } from './components/SignUpScreen';
@@ -23,6 +24,64 @@ import { useEffect } from 'react';
 import type { ReactNode } from 'react';
 import { authService } from '../services/authService';
 import { useAndroidBack } from '../hooks/useAndroidBack';
+
+/** Detects genuine Android WebView (Capacitor / custom bridge) */
+function isAndroidApp(): boolean {
+  const ua = navigator.userAgent || '';
+  return (
+    /Android.*wv/.test(ua) ||
+    typeof (window as Window & { Android?: unknown }).Android !== 'undefined' ||
+    typeof (window as Window & { Capacitor?: unknown }).Capacitor !== 'undefined'
+  );
+}
+
+function MobileOnlyGuard({ children }: { children: ReactNode }) {
+  if (isAndroidApp()) return <>{children}</>;
+
+  return (
+    <div
+      dir="rtl"
+      className="fixed inset-0 bg-slate-950 flex flex-col items-center justify-center gap-8 px-6 text-center"
+    >
+      {/* Glow */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-blue-600/10 rounded-full blur-3xl" />
+      </div>
+
+      {/* Icon */}
+      <div className="relative">
+        <div className="absolute inset-0 bg-blue-500/20 blur-2xl rounded-[32px]" />
+        <img
+          src="/icon.png"
+          alt="ZeroEscape"
+          className="relative w-24 h-24 rounded-[24px] shadow-2xl shadow-black/60"
+          onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+        />
+      </div>
+
+      {/* Message */}
+      <div className="space-y-3">
+        <h1 className="text-white text-2xl font-bold">ZeroEscape No.1</h1>
+        <p className="text-slate-400 text-base leading-relaxed">
+          هذا التطبيق مخصص للأجهزة المحمولة فقط.
+          <br />
+          يرجى تحميله على هاتفك لتجربة كاملة.
+        </p>
+      </div>
+
+      {/* CTA */}
+      <div className="flex flex-col items-center gap-3 w-full max-w-xs">
+        <div className="flex items-center gap-3 w-full justify-center rounded-2xl border border-slate-700 bg-slate-900 px-6 py-4">
+          <Smartphone className="w-6 h-6 text-sky-400 flex-shrink-0" />
+          <span className="text-slate-300 text-sm">متاح على أندرويد</span>
+        </div>
+        <p className="text-slate-600 text-xs">
+          لا يمكن استخدام التطبيق من المتصفح
+        </p>
+      </div>
+    </div>
+  );
+}
 
 function ProtectedRoute({ children }: { children: ReactNode }) {
   const { user, isGuestExpired } = useAuthStore();
@@ -65,11 +124,24 @@ export default function App() {
       const persistedUser = useAuthStore.getState().user;
 
       if (firebaseUser) {
-        setUser(firebaseUser);
+        // Don't overwrite a user that was just set by a direct signUp/signIn call
+        // (their uid will already match — safe to update; only skip if uid differs
+        // which shouldn't happen, but guard anyway)
+        if (!persistedUser || persistedUser.id === firebaseUser.id) {
+          setUser(firebaseUser);
+        } else {
+          // Different uid somehow — trust the direct call, just clear loading
+          setLoading(false);
+        }
         return;
       }
 
-      if (persistedUser?.type === 'guest') {
+      // Firebase says no user — but we may have a valid local/anonymous guest
+      const isLocalGuest =
+        persistedUser?.type === 'guest' &&
+        (persistedUser.id.startsWith('guest_') || !persistedUser.id.includes(':'));
+
+      if (isLocalGuest) {
         setLoading(false);
         return;
       }
@@ -81,11 +153,13 @@ export default function App() {
   }, [setLoading, setUser]);
 
   return (
-    <div className="dark w-full max-w-full overflow-x-hidden">
-      <BrowserRouter>
-        <AppRoutes />
-      </BrowserRouter>
-    </div>
+    <MobileOnlyGuard>
+      <div className="dark w-full max-w-full overflow-x-hidden">
+        <BrowserRouter>
+          <AppRoutes />
+        </BrowserRouter>
+      </div>
+    </MobileOnlyGuard>
   );
 }
 
@@ -121,29 +195,59 @@ function AppRoutes() {
     {/* ── In-app exit confirmation dialog ─────────────────────────────── */}
     {showExitDialog && (
       <div
-        className="fixed inset-0 bg-black/70 flex items-end justify-center z-[9999] pb-safe"
+        className="fixed inset-0 z-[9999] flex items-end justify-center"
         style={{ paddingBottom: `calc(env(safe-area-inset-bottom, 0px) + 24px)` }}
         onClick={dismissExitDialog}
       >
+        {/* Backdrop */}
+        <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
+
+        {/* Card */}
         <div
-          className="w-full max-w-sm bg-slate-900 border border-slate-700 rounded-t-2xl p-6 text-right"
+          className="relative w-full max-w-sm mx-4 text-right overflow-hidden"
+          style={{ borderRadius: 28 }}
           onClick={(e) => e.stopPropagation()}
         >
-          <h2 className="text-white text-lg font-bold mb-2">هل تريد الخروج من التطبيق؟</h2>
-          <p className="text-slate-400 text-sm mb-6 leading-relaxed">سيتم إغلاق ZeroEscape No.1</p>
-          <div className="flex gap-3">
-            <button
-              onClick={confirmExit}
-              className="flex-1 h-12 rounded-xl bg-red-500/20 border border-red-500/30 text-red-300 font-medium hover:bg-red-500/30 transition"
-            >
-              نعم، خروج
-            </button>
-            <button
-              onClick={dismissExitDialog}
-              className="flex-1 h-12 rounded-xl bg-slate-800 border border-slate-700 text-white font-medium hover:bg-slate-700 transition"
-            >
-              لا، ابقَ
-            </button>
+          {/* Red ambient glow behind card */}
+          <div className="absolute -inset-1 rounded-[32px] bg-red-600/20 blur-2xl pointer-events-none" />
+
+          {/* Inner card */}
+          <div
+            className="relative bg-[#1a0a0a] border border-red-900/60 p-6"
+            style={{ borderRadius: 28 }}
+          >
+            {/* Top glow strip */}
+            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-2/3 h-px bg-gradient-to-r from-transparent via-red-600/60 to-transparent" />
+
+            {/* Icon */}
+            <div className="flex justify-center mb-4">
+              <div className="w-14 h-14 rounded-2xl bg-red-900/30 border border-red-800/40 flex items-center justify-center">
+                <svg className="w-7 h-7 text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h6a2 2 0 012 2v1" />
+                </svg>
+              </div>
+            </div>
+
+            {/* Text */}
+            <h2 className="text-white text-lg font-bold mb-1.5 text-center">هل تريد الخروج؟</h2>
+            <p className="text-red-200/50 text-sm mb-6 text-center leading-relaxed">سيتم إغلاق ZeroEscape No.1</p>
+
+            {/* Buttons */}
+            <div className="flex gap-3">
+              <button
+                onClick={confirmExit}
+                className="flex-1 h-12 rounded-2xl bg-red-600/80 border border-red-500/50 text-white font-semibold text-sm transition active:scale-95 hover:bg-red-600"
+                style={{ boxShadow: '0 0 18px rgba(220,38,38,0.35)' }}
+              >
+                نعم، خروج
+              </button>
+              <button
+                onClick={dismissExitDialog}
+                className="flex-1 h-12 rounded-2xl bg-white/5 border border-white/10 text-slate-300 font-medium text-sm transition active:scale-95 hover:bg-white/10"
+              >
+                لا، ابقَ
+              </button>
+            </div>
           </div>
         </div>
       </div>

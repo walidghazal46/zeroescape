@@ -1,8 +1,17 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Mail, Lock, Eye, EyeOff, User, ChevronRight, ShieldAlert, Loader2 } from 'lucide-react';
+import { Mail, Lock, Eye, EyeOff, User, ChevronRight, ShieldAlert, Loader2, Smartphone } from 'lucide-react';
 import { useAuthStore } from '../../store/authStore';
 import { authService, getAuthErrorCode } from '../../services/authService';
+
+const isMobileApp = (): boolean => {
+  const ua = navigator.userAgent || '';
+  return (
+    /Android.*wv/.test(ua) ||
+    typeof (window as Window & { Android?: unknown }).Android !== 'undefined' ||
+    typeof (window as Window & { Capacitor?: unknown }).Capacitor !== 'undefined'
+  );
+};
 
 const authErrorMessages: Record<string, string> = {
   'auth/email-already-in-use': 'هذا البريد الإلكتروني مستخدم بالفعل.',
@@ -27,6 +36,19 @@ export function SignUpScreen() {
   const [acceptTerms, setAcceptTerms] = useState(false);
   const [error, setError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Block non-mobile access at component level (second safety layer after MobileOnlyGuard)
+  if (!isMobileApp()) {
+    return (
+      <div dir="rtl" className="fixed inset-0 bg-slate-950 flex flex-col items-center justify-center gap-6 px-6 text-center">
+        <Smartphone className="w-14 h-14 text-sky-400" />
+        <div>
+          <h2 className="text-white text-xl font-bold mb-2">التسجيل متاح على الموبايل فقط</h2>
+          <p className="text-slate-400 text-sm">حمّل التطبيق على هاتفك الأندرويد للتسجيل</p>
+        </div>
+      </div>
+    );
+  }
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
