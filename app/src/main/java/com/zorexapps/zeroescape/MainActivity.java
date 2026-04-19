@@ -8,6 +8,7 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.graphics.Color;
 import android.net.VpnService;
 import android.os.Build;
 import android.os.Bundle;
@@ -444,6 +445,7 @@ public class MainActivity extends AppCompatActivity {
         checkGooglePlayServices();
 
         webView = new WebView(this);
+        webView.setBackgroundColor(Color.parseColor("#020617"));
         WebSettings webSettings = webView.getSettings();
         webSettings.setJavaScriptEnabled(true);
         webSettings.setDomStorageEnabled(true);
