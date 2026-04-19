@@ -8,7 +8,7 @@ export interface User {
   id: string;
   email: string | null;
   name: string | null;
-  type: 'google' | 'guest';
+  type: 'google' | 'email' | 'guest';
   guestExpiresAt?: number;
   subscriptionStatus?: 'free' | 'premium' | 'expired';
   subscriptionExpiresAt?: number;
@@ -61,7 +61,7 @@ export const useAuthStore = create<AuthStore>()(
           email: null,
           name: 'ضيف',
           type: 'guest',
-          guestExpiresAt: Date.now() + 24 * 60 * 60 * 1000, // 24 ساعة
+          guestExpiresAt: Date.now() + 48 * 60 * 60 * 1000, // 48 ساعة
           subscriptionStatus: 'free',
           deviceId: getDeviceId(),
           createdAt: Date.now(),

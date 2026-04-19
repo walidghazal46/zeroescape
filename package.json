@@ -1,11 +1,13 @@
 {
-  "name": "@figma/my-make-file",
+  "name": "zeroescape-no1",
   "private": true,
   "version": "0.0.1",
   "type": "module",
   "scripts": {
     "build": "vite build",
-    "dev": "vite"
+    "dev": "vite",
+    "sync:android": "node scripts/sync-android-assets.mjs",
+    "build:android-assets": "npm run build && npm run sync:android"
   },
   "dependencies": {
     "@emotion/react": "11.14.0",

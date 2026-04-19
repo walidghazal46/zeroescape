@@ -1,5 +1,6 @@
 import {
   createUserWithEmailAndPassword,
+  type AuthError,
   onAuthStateChanged,
   signInAnonymously,
   signInWithEmailAndPassword,
@@ -13,6 +14,36 @@ import { doc, setDoc, getDoc, serverTimestamp } from 'firebase/firestore';
 import { User, ADMIN_EMAIL } from '../store/authStore';
 
 const googleProvider = new GoogleAuthProvider();
+
+const getUserTypeFromProvider = (firebaseUser: FirebaseAuthUser): User['type'] => {
+  const providerIds = firebaseUser.providerData.map((p) => p.providerId);
+
+  if (providerIds.includes('google.com')) {
+    return 'google';
+  }
+
+  if (providerIds.includes('password')) {
+    return 'email';
+  }
+
+  return 'email';
+};
+
+export const getAuthErrorCode = (error: unknown): string => {
+  const authError = error as AuthError;
+  return authError?.code || 'auth/unknown';
+};
+
+const buildLocalGuestUser = (): User => ({
+  id: `guest_${Date.now()}`,
+  email: null,
+  name: 'ضيف',
+  type: 'guest',
+  guestExpiresAt: Date.now() + 48 * 60 * 60 * 1000,
+  subscriptionStatus: 'free',
+  deviceId: localStorage.getItem('zeroEscape_deviceId') || '',
+  createdAt: Date.now(),
+});
 
 export const authService = {
   normalizeFirebaseUser: async (firebaseUser: FirebaseAuthUser): Promise<User> => {
@@ -64,7 +95,7 @@ export const authService = {
       id: firebaseUser.uid,
       email: firebaseUser.email,
       name: firebaseUser.displayName,
-      type: 'google',
+      type: getUserTypeFromProvider(firebaseUser),
       subscriptionStatus: isAdmin ? 'premium' : 'free',
       deviceId: localStorage.getItem('zeroEscape_deviceId') || '',
       createdAt: Date.now(),
@@ -95,7 +126,7 @@ export const authService = {
       id: result.user.uid,
       email: result.user.email,
       name,
-      type: 'google',
+      type: 'email',
       subscriptionStatus: 'free',
       deviceId: localStorage.getItem('zeroEscape_deviceId') || '',
       createdAt: Date.now(),
@@ -110,25 +141,31 @@ export const authService = {
   },
 
   createGuestUser: async (): Promise<User> => {
-    const result = await signInAnonymously(auth);
-    const guestUser: User = {
-      id: result.user.uid,
-      email: null,
-      name: 'ضيف',
-      type: 'guest',
-      guestExpiresAt: Date.now() + 24 * 60 * 60 * 1000,
-      subscriptionStatus: 'free',
-      deviceId: localStorage.getItem('zeroEscape_deviceId') || '',
-      createdAt: Date.now(),
-    };
+    try {
+      const result = await signInAnonymously(auth);
+      const guestUser: User = {
+        id: result.user.uid,
+        email: null,
+        name: 'ضيف',
+        type: 'guest',
+        guestExpiresAt: Date.now() + 48 * 60 * 60 * 1000,
+        subscriptionStatus: 'free',
+        deviceId: localStorage.getItem('zeroEscape_deviceId') || '',
+        createdAt: Date.now(),
+      };
 
-    await setDoc(doc(db, 'guests', guestUser.id), {
-      ...guestUser,
-      createdAt: serverTimestamp(),
-      updatedAt: serverTimestamp(),
-    }, { merge: true });
+      await setDoc(doc(db, 'guests', guestUser.id), {
+        ...guestUser,
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp(),
+      }, { merge: true });
 
-    return guestUser;
+      return guestUser;
+    } catch (error) {
+      // Keep app testable on mobile even if anonymous auth is disabled/misconfigured.
+      console.warn('Anonymous auth failed. Falling back to local guest mode.', error);
+      return buildLocalGuestUser();
+    }
   },
 
   signInWithEmail: async (email: string, password: string): Promise<User> => {

@@ -1,7 +1,7 @@
 
   # ZeroEscape No.1 Mobile App
 
-  This is a code bundle for ZeroEscape No.1 Mobile App. The original project is available at https://www.figma.com/design/dqSFkNHbDjiQAJwGbPUNAp/ZeroEscape-No.1-Mobile-App.
+  This repository contains the source code for ZeroEscape No.1 Mobile App.
 
   ## Running the code
 
