@@ -123,18 +123,34 @@ export const authService = {
       // Compute live account status from Firestore dates
       const now = Date.now();
       let accountStatus: AccountStatus = userDoc.accountStatus ?? 'registered_trial';
+
+      // If trialEndAt is missing, recover it from createdAt (or set fresh 7-day window)
+      // so a missing field never causes an immediate expiry.
+      const recoveredTrialEnd: number =
+        userDoc.trialEndAt ??
+        (userDoc.createdAt
+          ? userDoc.createdAt + REGISTERED_TRIAL_DAYS * 24 * 60 * 60 * 1000
+          : now + REGISTERED_TRIAL_DAYS * 24 * 60 * 60 * 1000);
+
       if (isAdmin) {
         accountStatus = 'active';
       } else if (accountStatus !== 'suspended') {
         // Re-derive from dates so status doesn't get stale
         if (userDoc.subscriptionEndAt && now < userDoc.subscriptionEndAt) {
           accountStatus = 'active';
-        } else if (userDoc.trialEndAt && now < userDoc.trialEndAt) {
+        } else if (now < recoveredTrialEnd) {
           accountStatus = 'registered_trial';
         } else if (userDoc.accountStatus === 'active' || userDoc.accountStatus === 'registered_trial') {
           // Was active/trial but dates say it's over
           accountStatus = 'expired';
         }
+      }
+
+      // Write back trialEndAt if it was missing so future logins work correctly
+      const extraFields: Record<string, unknown> = {};
+      if (!userDoc.trialEndAt) {
+        extraFields.trialEndAt = recoveredTrialEnd;
+        extraFields.trialStartAt = userDoc.trialStartAt ?? userDoc.createdAt ?? now;
       }
 
       await setDoc(doc(db, 'users', firebaseUser.uid), {
@@ -143,6 +159,7 @@ export const authService = {
         isAdmin,
         accountStatus,
         subscriptionStatus: isAdmin ? 'premium' : userDoc.subscriptionStatus,
+        ...extraFields,
       }, { merge: true });
 
       return {
@@ -151,6 +168,8 @@ export const authService = {
         accountStatus,
         subscriptionStatus: isAdmin ? 'premium' : userDoc.subscriptionStatus,
         deviceId,
+        trialEndAt: userDoc.trialEndAt ?? recoveredTrialEnd,
+        trialStartAt: userDoc.trialStartAt ?? userDoc.createdAt ?? (recoveredTrialEnd - REGISTERED_TRIAL_DAYS * 24 * 60 * 60 * 1000),
       };
     }
 
