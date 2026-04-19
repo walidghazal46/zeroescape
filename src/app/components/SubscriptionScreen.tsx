@@ -12,7 +12,7 @@
  */
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ChevronRight, Check, Crown, Clock, ArrowRight, Copy, Mail } from 'lucide-react';
+import { ChevronRight, Check, Crown, Clock, ArrowRight, Copy, Mail, Settings } from 'lucide-react';
 import { useAuthStore } from '../../store/authStore';
 import { usePreferencesStore } from '../../store/preferencesStore';
 import { useSubscriptionStore } from '../../store/subscriptionStore';
@@ -117,7 +117,13 @@ export function SubscriptionScreen() {
         <h1 className="text-white text-lg font-bold flex-1 text-center">
           {ar ? 'الاشتراك' : 'Subscription'}
         </h1>
-        <div className="w-9" />
+        <button
+          onClick={() => navigate('/settings')}
+          className="w-9 h-9 flex items-center justify-center text-slate-400 hover:text-white transition rounded-xl"
+          aria-label={ar ? 'الإعدادات' : 'Settings'}
+        >
+          <Settings className="w-5 h-5" />
+        </button>
       </div>
 
       {/* ── STEP: plans ─────────────────────────────────────────────────── */}
@@ -239,6 +245,19 @@ export function SubscriptionScreen() {
 
           {error && (
             <p className="text-red-400 text-sm text-center bg-red-500/10 border border-red-500/20 rounded-xl p-3">{error}</p>
+          )}
+
+          {/* Continue with trial — shown only when trial is still active */}
+          {daysLeft > 0 && (
+            <button
+              onClick={() => navigate('/home')}
+              className="w-full h-11 rounded-2xl border border-slate-700 bg-slate-900/60 text-slate-400 text-sm hover:border-slate-600 hover:text-slate-300 transition flex items-center justify-center gap-2"
+            >
+              <Clock className="w-4 h-4 text-sky-400" />
+              {ar
+                ? `متابعة بالتجربة المجانية · ${daysLeft} ${daysLeft === 1 ? 'يوم' : 'أيام'} متبقية`
+                : `Continue with trial · ${daysLeft} day${daysLeft !== 1 ? 's' : ''} left`}
+            </button>
           )}
         </div>
       )}
