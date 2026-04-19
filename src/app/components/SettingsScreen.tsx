@@ -4,6 +4,7 @@ import { ChevronRight, Shield, Bell, Globe, AlertCircle, Lock, CheckCircle2 } fr
 import { authService } from '../../services/authService';
 import { useAuthStore } from '../../store/authStore';
 import { usePreferencesStore } from '../../store/preferencesStore';
+import { useSessionStore } from '../../store/sessionStore';
 
 function Toggle({ active, onChange }: { active: boolean; onChange: () => void }) {
   return (
@@ -20,9 +21,12 @@ export function SettingsScreen() {
   const navigate = useNavigate();
   const { logout, user, setEmergencyPin } = useAuthStore();
   const { language, setLanguage } = usePreferencesStore();
+  const { activeSession } = useSessionStore();
   const [notifications, setNotifications] = useState(true);
   const [autoStart, setAutoStart] = useState(true);
   const [strictMode, setStrictMode] = useState(false);
+  const [showLogoutDialog, setShowLogoutDialog] = useState(false);
+  const [showSessionBlockDialog, setShowSessionBlockDialog] = useState(false);
 
   // PIN setup state
   const [showPinSetup, setShowPinSetup] = useState(false);
@@ -34,12 +38,21 @@ export function SettingsScreen() {
   const isArabic = language === 'ar';
   const hasPIN = Boolean(user?.emergencyPin);
 
-  const handleLogout = async () => {
+  const performLogout = async () => {
     if (user?.type === 'google') {
       await authService.logout();
     }
     logout();
     navigate('/login');
+  };
+
+  const handleLogout = () => {
+    if (activeSession) {
+      setShowSessionBlockDialog(true);
+      return;
+    }
+
+    setShowLogoutDialog(true);
   };
 
   const handleSavePin = () => {
@@ -220,6 +233,67 @@ export function SettingsScreen() {
           {isArabic ? 'تسجيل الخروج' : 'Log out'}
         </button>
       </div>
+
+      {showLogoutDialog && (
+        <div className="fixed inset-0 z-[10000] flex items-end justify-center px-4" onClick={() => setShowLogoutDialog(false)}>
+          <div className="absolute inset-0 bg-black/65 backdrop-blur-sm" />
+          <div
+            className="relative w-full max-w-sm mb-6 rounded-3xl border border-slate-800 bg-slate-900 p-5 text-right shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h3 className="text-white text-lg font-semibold mb-2">
+              {isArabic ? 'هل تريد تسجيل الخروج؟' : 'Do you want to log out?'}
+            </h3>
+            <p className="text-slate-400 text-sm leading-relaxed mb-5">
+              {isArabic
+                ? 'سيتم إنهاء جلستك الحالية والعودة إلى شاشة تسجيل الدخول.'
+                : 'Your account session will end and you will return to the sign-in screen.'}
+            </p>
+            <div className="flex gap-3">
+              <button
+                onClick={async () => {
+                  setShowLogoutDialog(false);
+                  await performLogout();
+                }}
+                className="flex-1 h-11 rounded-2xl bg-red-600 text-white font-medium hover:bg-red-500 transition"
+              >
+                {isArabic ? 'تأكيد الخروج' : 'Confirm logout'}
+              </button>
+              <button
+                onClick={() => setShowLogoutDialog(false)}
+                className="flex-1 h-11 rounded-2xl border border-slate-700 bg-slate-800 text-slate-300 font-medium hover:bg-slate-700 transition"
+              >
+                {isArabic ? 'إلغاء' : 'Cancel'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showSessionBlockDialog && (
+        <div className="fixed inset-0 z-[10000] flex items-end justify-center px-4" onClick={() => setShowSessionBlockDialog(false)}>
+          <div className="absolute inset-0 bg-black/65 backdrop-blur-sm" />
+          <div
+            className="relative w-full max-w-sm mb-6 rounded-3xl border border-amber-500/20 bg-slate-900 p-5 text-right shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h3 className="text-white text-lg font-semibold mb-2">
+              {isArabic ? 'لا يمكن تسجيل الخروج الآن' : 'Logout is not available now'}
+            </h3>
+            <p className="text-slate-400 text-sm leading-relaxed mb-5">
+              {isArabic
+                ? 'هناك جلسة تركيز نشطة. أنهِ الجلسة أولاً أو استخدم الخروج الطارئ إذا لزم الأمر.'
+                : 'A focus session is currently active. Finish the session first or use emergency exit if necessary.'}
+            </p>
+            <button
+              onClick={() => setShowSessionBlockDialog(false)}
+              className="w-full h-11 rounded-2xl bg-amber-500/15 border border-amber-500/30 text-amber-300 font-medium hover:bg-amber-500/20 transition"
+            >
+              {isArabic ? 'فهمت' : 'Understood'}
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
