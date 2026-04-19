@@ -19,6 +19,7 @@ declare global {
       stopVpnBlocking: () => void;
       startImmersiveMode: () => void;
       stopImmersiveMode: () => void;
+      setSessionActive: (active: boolean) => void;
     };
   }
 }

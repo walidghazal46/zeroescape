@@ -74,6 +74,13 @@ export function ActiveSessionScreen() {
     window.Android?.startVpnBlocking?.();
     // Enter true immersive mode (hides status bar + notification shade pull)
     window.Android?.startImmersiveMode?.();
+    // Sync session state with native layer for onWindowFocusChanged
+    window.Android?.setSessionActive?.(true);
+
+    // Periodically re-enforce immersive mode every 10s as a safety net
+    const immersiveInterval = setInterval(() => {
+      window.Android?.setSessionActive?.(true);
+    }, 10_000);
 
     // Block Android hardware back button
     (window as Window & { onAndroidBack?: () => void }).onAndroidBack = () => {
@@ -123,6 +130,7 @@ export function ActiveSessionScreen() {
     window.addEventListener('beforeunload', handleBeforeUnload);
 
     return () => {
+      clearInterval(immersiveInterval);
       document.removeEventListener('visibilitychange', handleVisibilityChange);
       window.removeEventListener('popstate', handlePopState);
       window.removeEventListener('beforeunload', handleBeforeUnload);
@@ -132,6 +140,8 @@ export function ActiveSessionScreen() {
       window.Android?.stopVpnBlocking?.();
       // Restore normal UI
       window.Android?.stopImmersiveMode?.();
+      // Tell native layer session is over
+      window.Android?.setSessionActive?.(false);
       // Restore Android back button behaviour
       delete (window as Window & { onAndroidBack?: () => void }).onAndroidBack;
       delete (window as Window & { onAndroidResume?: () => void }).onAndroidResume;

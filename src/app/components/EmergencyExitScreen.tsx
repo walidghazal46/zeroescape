@@ -188,10 +188,16 @@ export function EmergencyExitScreen() {
 
         {/* PIN not configured */}
         {!hasPinSetup && !isExhausted && (
-          <div className="bg-orange-500/10 border border-orange-500/30 rounded-2xl p-5 text-center space-y-2">
+          <div className="bg-orange-500/10 border border-orange-500/30 rounded-2xl p-5 text-center space-y-3">
             <Lock className="w-8 h-8 text-orange-400 mx-auto" />
             <p className="text-orange-400 font-medium">لم يُعيَّن رمز الطوارئ</p>
-            <p className="text-slate-400 text-sm">يجب تعيين رمز الطوارئ من حسابك أثناء التسجيل.</p>
+            <p className="text-slate-400 text-sm">يجب تعيين رمز الطوارئ من الإعدادات قبل استخدام هذه الميزة.</p>
+            <button
+              onClick={() => navigate('/settings', { replace: true })}
+              className="w-full py-3 rounded-xl bg-orange-500/20 border border-orange-500/40 text-orange-300 text-sm hover:bg-orange-500/30 transition"
+            >
+              الذهاب للإعدادات لضبط الرمز
+            </button>
           </div>
         )}
 

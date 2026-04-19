@@ -14,6 +14,7 @@ import android.provider.Settings;
 import android.view.View;
 import android.view.WindowInsets;
 import android.view.WindowInsetsController;
+import android.view.WindowManager;
 import android.view.accessibility.AccessibilityManager; // kept for potential future use
 import android.webkit.JavascriptInterface;
 import android.webkit.WebResourceRequest;
@@ -46,6 +47,41 @@ public class MainActivity extends AppCompatActivity {
     private ActivityResultLauncher<Intent> vpnPermissionLauncher;
     private ActivityResultLauncher<Intent> deviceAdminLauncher;
     private boolean vpnServiceRunning = false;
+    private boolean sessionActive = false;
+
+    /** Re-applies immersive sticky mode on the UI thread. */
+    private void applyImmersiveMode() {
+        runOnUiThread(() -> {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                WindowInsetsController ctrl = getWindow().getInsetsController();
+                if (ctrl != null) {
+                    ctrl.hide(WindowInsets.Type.systemBars());
+                    ctrl.setSystemBarsBehavior(
+                        WindowInsetsController.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+                    );
+                }
+            } else {
+                View decor = getWindow().getDecorView();
+                //noinspection deprecation
+                int flags = View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
+                    | View.SYSTEM_UI_FLAG_LAYOUT_STABLE
+                    | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
+                    | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
+                    | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
+                    | View.SYSTEM_UI_FLAG_FULLSCREEN;
+                //noinspection deprecation
+                decor.setSystemUiVisibility(flags);
+                // Re-apply whenever bars become visible (e.g. swipe-down)
+                //noinspection deprecation
+                decor.setOnSystemUiVisibilityChangeListener(visibility -> {
+                    if (sessionActive && (visibility & View.SYSTEM_UI_FLAG_FULLSCREEN) == 0) {
+                        //noinspection deprecation
+                        decor.setSystemUiVisibility(flags);
+                    }
+                });
+            }
+        });
+    }
 
     /** Bridge exposed to JavaScript as window.Android */
     private class AndroidBridge {
@@ -286,41 +322,22 @@ public class MainActivity extends AppCompatActivity {
         }
 
         /**
-         * Enters true immersive sticky mode:
-         * hides status bar, nav bar, and blocks notification shade pull-down.
-         * Must be called at session start.
+         * Enters true immersive sticky mode and marks session as active.
+         * Hides status bar + nav bar; prevents notification shade pull-down.
          */
         @JavascriptInterface
         public void startImmersiveMode() {
-            runOnUiThread(() -> {
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-                    WindowInsetsController ctrl = getWindow().getInsetsController();
-                    if (ctrl != null) {
-                        ctrl.hide(WindowInsets.Type.systemBars());
-                        ctrl.setSystemBarsBehavior(
-                            WindowInsetsController.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
-                        );
-                    }
-                } else {
-                    //noinspection deprecation
-                    getWindow().getDecorView().setSystemUiVisibility(
-                        View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
-                        | View.SYSTEM_UI_FLAG_LAYOUT_STABLE
-                        | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
-                        | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
-                        | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
-                        | View.SYSTEM_UI_FLAG_FULLSCREEN
-                    );
-                }
-            });
+            sessionActive = true;
+            runOnUiThread(() -> getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON));
+            applyImmersiveMode();
         }
 
-        /**
-         * Restores normal system UI after session ends.
-         */
+        /** Marks session as inactive and restores normal system UI. */
         @JavascriptInterface
         public void stopImmersiveMode() {
+            sessionActive = false;
             runOnUiThread(() -> {
+                getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
                     WindowInsetsController ctrl = getWindow().getInsetsController();
                     if (ctrl != null) {
@@ -328,9 +345,26 @@ public class MainActivity extends AppCompatActivity {
                     }
                 } else {
                     //noinspection deprecation
+                    getWindow().getDecorView().setOnSystemUiVisibilityChangeListener(null);
+                    //noinspection deprecation
                     getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_VISIBLE);
                 }
             });
+        }
+
+        /**
+         * Called by JS to sync session state with native layer.
+         * When active=true, re-applies immersive mode immediately.
+         */
+        @JavascriptInterface
+        public void setSessionActive(boolean active) {
+            sessionActive = active;
+            if (active) {
+                runOnUiThread(() -> getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON));
+                applyImmersiveMode();
+            } else {
+                runOnUiThread(() -> getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON));
+            }
         }
 
         @JavascriptInterface
@@ -463,6 +497,18 @@ public class MainActivity extends AppCompatActivity {
             "})();";
 
         webView.post(() -> webView.evaluateJavascript(script, null));
+    }
+
+    /**
+     * Re-enters immersive mode whenever the window regains focus during an active session.
+     * This fires after: status-bar swipe, recent-apps return, notification panel collapse.
+     */
+    @Override
+    public void onWindowFocusChanged(boolean hasFocus) {
+        super.onWindowFocusChanged(hasFocus);
+        if (hasFocus && sessionActive) {
+            applyImmersiveMode();
+        }
     }
 
     /** Delegate the back press to the React app via window.onAndroidBack() */
