@@ -35,6 +35,7 @@ import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
 import com.google.android.gms.auth.api.signin.GoogleSignInClient;
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
 import com.google.android.gms.common.api.ApiException;
+import org.json.JSONArray;
 import org.json.JSONObject;
 
 public class MainActivity extends AppCompatActivity {
@@ -132,6 +133,102 @@ public class MainActivity extends AppCompatActivity {
                     .setNegativeButton("لا", null)
                     .show()
             );
+        }
+
+        // ── Schedule bridge ──────────────────────────────────────────────────────
+
+        /**
+         * Called from JS to register / update a single schedule alarm.
+         * payload: JSON string matching ScheduleEntry shape from scheduleStore.ts
+         */
+        @JavascriptInterface
+        public void scheduleSession(String entryJson) {
+            try {
+                JSONObject obj = new JSONObject(entryJson);
+                String id    = obj.getString("id");
+                String mode  = obj.getString("mode");
+                int    dur   = obj.getInt("durationMinutes");
+                String label = obj.optString("label", "");
+                int    hour  = obj.getInt("startHour");
+                int    min   = obj.getInt("startMinute");
+
+                // Find the next occurrence (within 7 days) that matches the days array
+                JSONArray days = obj.getJSONArray("days");
+                long triggerAt = nextOccurrenceMillis(hour, min, days);
+                if (triggerAt < 0) return; // no matching day
+
+                ScheduleAlarmReceiver.schedule(MainActivity.this, id, mode, dur, label, triggerAt);
+            } catch (Exception e) {
+                // Silently ignore malformed JSON
+            }
+        }
+
+        /** Cancel alarm for a single schedule entry by id. */
+        @JavascriptInterface
+        public void cancelSchedule(String scheduleId) {
+            ScheduleAlarmReceiver.cancel(MainActivity.this, scheduleId);
+        }
+
+        /**
+         * Re-synchronise ALL alarms from the full schedule list.
+         * Called after any change (add / edit / toggle / delete).
+         */
+        @JavascriptInterface
+        public void syncSchedules(String allEntriesJson) {
+            try {
+                // Cancel all existing alarms first (brute-force by iterating the new list)
+                JSONArray arr = new JSONArray(allEntriesJson);
+                for (int i = 0; i < arr.length(); i++) {
+                    JSONObject obj = arr.getJSONObject(i);
+                    ScheduleAlarmReceiver.cancel(MainActivity.this, obj.getString("id"));
+                }
+                // Now re-register enabled ones
+                for (int i = 0; i < arr.length(); i++) {
+                    JSONObject obj = arr.getJSONObject(i);
+                    if (!obj.optBoolean("enabled", true)) continue;
+
+                    String id    = obj.getString("id");
+                    String mode  = obj.getString("mode");
+                    int    dur   = obj.getInt("durationMinutes");
+                    String label = obj.optString("label", "");
+                    int    hour  = obj.getInt("startHour");
+                    int    minv  = obj.getInt("startMinute");
+                    JSONArray days = obj.getJSONArray("days");
+
+                    long triggerAt = nextOccurrenceMillis(hour, minv, days);
+                    if (triggerAt < 0) continue;
+
+                    ScheduleAlarmReceiver.schedule(MainActivity.this, id, mode, dur, label, triggerAt);
+                }
+            } catch (Exception e) {
+                // Silently ignore
+            }
+        }
+
+        /** Returns true if the app can schedule exact alarms (Android 12+). */
+        @JavascriptInterface
+        public boolean canScheduleExactAlarms() {
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.S) {
+                android.app.AlarmManager am =
+                    (android.app.AlarmManager) getSystemService(ALARM_SERVICE);
+                return am != null && am.canScheduleExactAlarms();
+            }
+            return true;
+        }
+
+        /** Open the exact-alarm permission settings screen (Android 12+). */
+        @JavascriptInterface
+        public void openExactAlarmSettings() {
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.S) {
+                runOnUiThread(() -> {
+                    Intent intent = new Intent(
+                        android.provider.Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM,
+                        android.net.Uri.parse("package:" + getPackageName())
+                    );
+                    intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                    startActivity(intent);
+                });
+            }
         }
 
         // ── Permission launchers ─────────────────────────────────────────────────
@@ -471,6 +568,65 @@ public class MainActivity extends AppCompatActivity {
         webView.loadUrl("https://appassets.androidplatform.net/index.html");
 
         setContentView(webView);
+
+        // ── Handle pending scheduled session ─────────────────────────────────
+        // If a ScheduleAlarmReceiver alarm fired while the app was closed, the receiver
+        // stored the pending session in SharedPreferences.  We consume it here and
+        // pass it to the JS layer once the WebView is ready.
+        checkPendingScheduledSession();
+    }
+
+    /**
+     * If a scheduled alarm fired, notify the JS layer so it can navigate to
+     * /active-session with the correct params.
+     */
+    private void checkPendingScheduledSession() {
+        String pending = ScheduleAlarmReceiver.consumePendingSession(this);
+        if (pending == null) return;
+
+        final String json = pending;
+        // Delay slightly so the WebView has time to finish loading
+        webView.postDelayed(() -> {
+            if (webView == null) return;
+            String escaped = json.replace("\\", "\\\\").replace("\"", "\\\"");
+            String script = "(function(){" +
+                "if(typeof window.onScheduledSessionFire==='function'){" +
+                "window.onScheduledSessionFire(" + json + ");" +
+                "}" +
+                "})();";
+            webView.evaluateJavascript(script, null);
+        }, 1500);
+    }
+
+    /**
+     * Compute the next epoch-millis occurrence of a specific (hour, minute) on
+     * one of the allowed days-of-week (0=Sun … 6=Sat).
+     * Returns -1 if the days array is empty or an error occurred.
+     */
+    static long nextOccurrenceMillis(int hour, int minute, org.json.JSONArray days) {
+        try {
+            java.util.Calendar now = java.util.Calendar.getInstance();
+            for (int offset = 0; offset < 7; offset++) {
+                java.util.Calendar candidate = (java.util.Calendar) now.clone();
+                candidate.add(java.util.Calendar.DAY_OF_YEAR, offset);
+                candidate.set(java.util.Calendar.HOUR_OF_DAY, hour);
+                candidate.set(java.util.Calendar.MINUTE, minute);
+                candidate.set(java.util.Calendar.SECOND, 0);
+                candidate.set(java.util.Calendar.MILLISECOND, 0);
+
+                if (candidate.getTimeInMillis() <= now.getTimeInMillis()) continue;
+
+                // getDayOfWeek returns 1=Sun…7=Sat; convert to 0-based
+                int dow = candidate.get(java.util.Calendar.DAY_OF_WEEK) - 1;
+
+                for (int i = 0; i < days.length(); i++) {
+                    if (days.getInt(i) == dow) {
+                        return candidate.getTimeInMillis();
+                    }
+                }
+            }
+        } catch (Exception ignored) {}
+        return -1L;
     }
 
     private void initGoogleSignIn() {

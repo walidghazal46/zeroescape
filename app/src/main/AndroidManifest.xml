@@ -12,6 +12,12 @@
         tools:ignore="ProtectedPermissions" />
     <uses-permission android:name="android.permission.BIND_ACCESSIBILITY_SERVICE"
         tools:ignore="ProtectedPermissions" />
+    <!-- Scheduled sessions: exact alarms (required on Android 12+) -->
+    <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
+    <!-- Fallback for Android 13+ where SCHEDULE_EXACT_ALARM may be restricted -->
+    <uses-permission android:name="android.permission.USE_EXACT_ALARM" />
+    <!-- Needed to show heads-up notification when alarm fires -->
+    <uses-permission android:name="android.permission.USE_FULL_SCREEN_INTENT" />
 
     <application
         android:allowBackup="true"
@@ -82,6 +88,15 @@
                 <action android:name="android.intent.action.QUICKBOOT_POWERON" />
                 <action android:name="com.htc.intent.action.QUICKBOOT_POWERON" />
                 <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+        </receiver>
+
+        <!-- Schedule alarm receiver — fires when a scheduled session is due -->
+        <receiver
+            android:name=".ScheduleAlarmReceiver"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="com.zorexapps.zeroescape.SCHEDULE_FIRE" />
             </intent-filter>
         </receiver>
 

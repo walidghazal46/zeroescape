@@ -17,6 +17,7 @@ import { StatisticsScreen } from './components/StatisticsScreen';
 import { SettingsScreen } from './components/SettingsScreen';
 import { GuestExpirationScreen } from './components/GuestExpirationScreen';
 import { SubscriptionScreen } from './components/SubscriptionScreen';
+import { ScheduleScreen } from './components/ScheduleScreen';
 import { useAuthStore } from '../store/authStore';
 import { usePreferencesStore } from '../store/preferencesStore';
 import { useSessionStore } from '../store/sessionStore';
@@ -62,16 +63,16 @@ function MobileOnlyGuard({ children }: { children: ReactNode }) {
       {/* Headline */}
       <div className="space-y-2">
         <h1 className="text-white text-3xl font-bold tracking-tight">ZeroEscape No.1</h1>
-        <p className="text-sky-400 text-sm font-medium tracking-wide uppercase">تطبيق التركيز الحقيقي</p>
+        <p className="text-sky-400 text-sm font-medium tracking-wide uppercase">#1 في منع الإباحية وإدمان الموبايل</p>
       </div>
 
       {/* Features */}
       <div className="w-full max-w-sm space-y-3 text-right">
         {[
-          { icon: '🔒', title: 'جلسات تركيز محمية', desc: 'وضع تركيز حقيقي يمنع المقاطعات ويصعّب الخروج — انضباط فعلي لا مجرد مؤقت.' },
-          { icon: '📵', title: 'تقليل التشتت الذكي', desc: 'حجب التطبيقات والمصادر المشتتة أثناء الجلسة، لتبقى مركزًا على ما يهمك.' },
-          { icon: '⚡', title: 'تجربة سلسة وبسيطة', desc: 'واجهة نظيفة تُطلق جلسة التركيز خلال ثوانٍ بدون أي تعقيد.' },
-          { icon: '🎯', title: 'تحكم كامل في وقتك', desc: 'حدد المدة واختر النمط: دراسة · عمل · نوم · مخصص.' },
+          { icon: '�️', title: 'حجب المواقع الإباحية', desc: 'يحجب المحتوى الإباحي تلقائياً أثناء الجلسة ويمنع الوصول إليه بشكل فعّال.' },
+          { icon: '📵', title: 'تحرر من إدمان الموبايل', desc: 'يقطع الوصول للتطبيقات المشتتة ويمنعك من فتحها — انضباط حقيقي لا مجرد رغبة.' },
+          { icon: '🔒', title: 'جلسات محمية لا يمكن الخروج منها', desc: 'وضع حماية متكامل يُغلق الموبايل على التطبيق حتى تنتهي الجلسة.' },
+          { icon: '🎯', title: 'خطة شخصية لكل هدف', desc: 'حدد هدفك: دراسة · عمل · نوم · إدمان — وسيُخصص التطبيق الخطة تلقائياً.' },
         ].map(({ icon, title, desc }) => (
           <div key={title} className="flex items-start gap-3 bg-slate-900/60 border border-slate-800 rounded-2xl px-4 py-3">
             <span className="text-xl mt-0.5 flex-shrink-0">{icon}</span>
@@ -85,9 +86,9 @@ function MobileOnlyGuard({ children }: { children: ReactNode }) {
 
       {/* Why different */}
       <div className="w-full max-w-sm bg-blue-500/10 border border-blue-500/20 rounded-2xl px-5 py-4 text-right space-y-1">
-        <p className="text-blue-400 text-sm font-semibold">💡 لماذا هذا التطبيق مختلف؟</p>
+        <p className="text-blue-400 text-sm font-semibold">💡 لماذا هو الأول؟</p>
         <p className="text-slate-400 text-xs leading-relaxed">
-          لأنه لا يعتمد على "الإرادة فقط" — بل يُقلّل فعليًا فرص الهروب والتشتت أثناء الجلسة.
+          لأنه لا يكتفي بالتحذير — بل يُغلق الباب أمام الإباحية وإدمان الموبايل بشكل فعلي، دون الاعتماد على الإرادة فقط.
         </p>
       </div>
 
@@ -206,6 +207,22 @@ function AppRoutes() {
   // from background) and a session is active but we're not on the session screen,
   // navigate back with the correct remaining time so the countdown continues.
   useEffect(() => {
+    // Register global scheduled-session handler
+    // When a ScheduleAlarmReceiver alarm fires, MainActivity calls this with the session JSON
+    (window as Window & { onScheduledSessionFire?: (s: unknown) => void }).onScheduledSessionFire = (session) => {
+      try {
+        const s = typeof session === 'string' ? JSON.parse(session) : session as Record<string, unknown>;
+        const mode = (s.mode as string) || 'custom';
+        const durationMinutes = (s.durationMinutes as number) || 60;
+        // Start the session in the store so it's tracked
+        useSessionStore.getState().startSession(mode, durationMinutes, true, true);
+        navigate('/active-session', {
+          replace: true,
+          state: { mode, duration: durationMinutes },
+        });
+      } catch { /* ignore parse error */ }
+    };
+
     const handleResume = () => {
       const session = useSessionStore.getState().activeSession;
       if (session && location.pathname !== '/active-session') {
@@ -247,6 +264,7 @@ function AppRoutes() {
       <Route path="/emergency-exit" element={<ProtectedRoute><EmergencyExitScreen /></ProtectedRoute>} />
       <Route path="/session-complete" element={<ProtectedRoute><SessionCompleteScreen /></ProtectedRoute>} />
       <Route path="/statistics" element={<ProtectedRoute><StatisticsScreen /></ProtectedRoute>} />
+      <Route path="/schedule" element={<ProtectedRoute><ScheduleScreen /></ProtectedRoute>} />
       <Route path="/settings" element={<ProtectedRoute><SettingsScreen /></ProtectedRoute>} />
       <Route path="/guest-expiration" element={<ProtectedRoute><GuestExpirationScreen /></ProtectedRoute>} />
       <Route path="/subscription" element={<SubscriptionScreen />} />

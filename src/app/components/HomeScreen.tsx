@@ -1,9 +1,10 @@
 import { useNavigate } from 'react-router-dom';
-import { Play, Shield, Settings, BarChart3, ShieldCheck, Flame, Clock, AlertTriangle } from 'lucide-react';
+import { Play, Shield, Settings, BarChart3, ShieldCheck, Flame, Clock, AlertTriangle, Calendar } from 'lucide-react';
 import { useAuthStore } from '../../store/authStore';
 import { usePreferencesStore } from '../../store/preferencesStore';
 import { useSessionStore } from '../../store/sessionStore';
 import { useAnalyticsStore } from '../../store/analyticsStore';
+import { useScheduleStore } from '../../store/scheduleStore';
 import { USER_GOALS } from '../../core/types';
 
 export function HomeScreen() {
@@ -12,6 +13,7 @@ export function HomeScreen() {
   const { language, userGoal } = usePreferencesStore();
   const { blockedApps, getTotalHoursThisWeek, getStreakDays, completedSessions, activeSession } = useSessionStore();
   const { getWeeklyBreakCount, getMostAttemptedApp, getTopBlockedApps } = useAnalyticsStore();
+  const { schedules, getNextSchedule } = useScheduleStore();
   const isArabic = language === 'ar';
 
   const blockedCount = Object.values(blockedApps).filter(Boolean).length;
@@ -20,6 +22,7 @@ export function HomeScreen() {
   const weeklyBreaks = getWeeklyBreakCount();
   const topApp = getMostAttemptedApp();
   const topApps = getTopBlockedApps(3);
+  const nextSchedule = getNextSchedule();
 
   // Compliance rate: sessions with 0 breaks / total sessions this week
   const weekAgo = Date.now() - 7 * 86400000;
@@ -144,6 +147,28 @@ export function HomeScreen() {
           </div>
           <h3 className="text-white font-medium text-sm mb-0.5">حماية الويب</h3>
           <p className="text-slate-500 text-xs">DNS نشط</p>
+        </button>
+
+        <button
+          onClick={() => navigate('/schedule')}
+          className="bg-slate-900 border border-slate-800 rounded-xl p-4 text-right hover:bg-slate-800 transition active:scale-[0.98] col-span-2"
+        >
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 bg-blue-500/20 rounded-xl flex items-center justify-center flex-shrink-0">
+              <Calendar className="w-4 h-4 text-blue-400" />
+            </div>
+            <div className="flex-1 text-right">
+              <h3 className="text-white font-medium text-sm">الجدولة التلقائية</h3>
+              <p className="text-slate-500 text-xs">
+                {schedules.filter((s) => s.enabled).length > 0
+                  ? nextSchedule
+                    ? `القادمة: ${nextSchedule.firesAt.toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' })}`
+                    : `${schedules.filter((s) => s.enabled).length} جدولة نشطة`
+                  : 'أضف جدولة تلقائية'}
+              </p>
+            </div>
+            <span className="text-slate-600 text-xs">←</span>
+          </div>
         </button>
       </div>
 
