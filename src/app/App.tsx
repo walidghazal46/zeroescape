@@ -41,7 +41,7 @@ function MobileOnlyGuard({ children }: { children: ReactNode }) {
   return (
     <div
       dir="rtl"
-      className="fixed inset-0 bg-slate-950 flex flex-col items-center justify-center gap-8 px-6 text-center"
+      className="fixed inset-0 bg-slate-950 flex flex-col items-center justify-start gap-6 px-6 py-10 text-center overflow-y-auto"
     >
       {/* Glow */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
@@ -59,21 +59,46 @@ function MobileOnlyGuard({ children }: { children: ReactNode }) {
         />
       </div>
 
-      {/* Message */}
-      <div className="space-y-3">
-        <h1 className="text-white text-2xl font-bold">ZeroEscape No.1</h1>
-        <p className="text-slate-400 text-base leading-relaxed">
-          هذا التطبيق مخصص للأجهزة المحمولة فقط.
-          <br />
-          يرجى تحميله على هاتفك لتجربة كاملة.
+      {/* Headline */}
+      <div className="space-y-2">
+        <h1 className="text-white text-3xl font-bold tracking-tight">ZeroEscape No.1</h1>
+        <p className="text-sky-400 text-sm font-medium tracking-wide uppercase">تطبيق التركيز الحقيقي</p>
+      </div>
+
+      {/* Features */}
+      <div className="w-full max-w-sm space-y-3 text-right">
+        {[
+          { icon: '🔒', title: 'جلسات تركيز محمية', desc: 'وضع تركيز حقيقي يمنع المقاطعات ويصعّب الخروج — انضباط فعلي لا مجرد مؤقت.' },
+          { icon: '📵', title: 'تقليل التشتت الذكي', desc: 'حجب التطبيقات والمصادر المشتتة أثناء الجلسة، لتبقى مركزًا على ما يهمك.' },
+          { icon: '⚡', title: 'تجربة سلسة وبسيطة', desc: 'واجهة نظيفة تُطلق جلسة التركيز خلال ثوانٍ بدون أي تعقيد.' },
+          { icon: '🎯', title: 'تحكم كامل في وقتك', desc: 'حدد المدة واختر النمط: دراسة · عمل · نوم · مخصص.' },
+        ].map(({ icon, title, desc }) => (
+          <div key={title} className="flex items-start gap-3 bg-slate-900/60 border border-slate-800 rounded-2xl px-4 py-3">
+            <span className="text-xl mt-0.5 flex-shrink-0">{icon}</span>
+            <div>
+              <p className="text-white text-sm font-semibold">{title}</p>
+              <p className="text-slate-400 text-xs leading-relaxed mt-0.5">{desc}</p>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Why different */}
+      <div className="w-full max-w-sm bg-blue-500/10 border border-blue-500/20 rounded-2xl px-5 py-4 text-right space-y-1">
+        <p className="text-blue-400 text-sm font-semibold">💡 لماذا هذا التطبيق مختلف؟</p>
+        <p className="text-slate-400 text-xs leading-relaxed">
+          لأنه لا يعتمد على "الإرادة فقط" — بل يُقلّل فعليًا فرص الهروب والتشتت أثناء الجلسة.
         </p>
       </div>
 
       {/* CTA */}
-      <div className="flex flex-col items-center gap-3 w-full max-w-xs">
+      <div className="flex flex-col items-center gap-3 w-full max-w-sm">
         <div className="flex items-center gap-3 w-full justify-center rounded-2xl border border-slate-700 bg-slate-900 px-6 py-4">
           <Smartphone className="w-6 h-6 text-sky-400 flex-shrink-0" />
-          <span className="text-slate-300 text-sm">متاح على أندرويد</span>
+          <div className="text-right">
+            <p className="text-white text-sm font-medium">متاح على أندرويد</p>
+            <p className="text-slate-500 text-xs">حمّل التطبيق وابدأ أول جلسة تركيز حقيقية</p>
+          </div>
         </div>
         <p className="text-slate-600 text-xs">
           لا يمكن استخدام التطبيق من المتصفح
