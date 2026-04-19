@@ -5,6 +5,9 @@ import { useSessionStore } from '../../store/sessionStore';
 import { usePreferencesStore } from '../../store/preferencesStore';
 import { USER_GOALS } from '../../core/types';
 
+const MIN_DURATION = 1;
+const MAX_DURATION = 480;
+
 const modes = [
   { id: 'study', icon: BookOpen, label: 'دراسة', duration: 90, color: 'from-blue-500 to-cyan-500' },
   { id: 'work', icon: Briefcase, label: 'عمل', duration: 90, color: 'from-violet-500 to-purple-500' },
@@ -28,6 +31,11 @@ export function StartSessionScreen() {
   const [webFilter, setWebFilter] = useState(webProtectionEnabled);
 
   const selectedModeData = modes.find((m) => m.id === selectedMode) ?? modes[0];
+
+  const updateDuration = (value: number) => {
+    const nextDuration = Math.min(MAX_DURATION, Math.max(MIN_DURATION, value));
+    setDuration(nextDuration);
+  };
 
   const handleStart = () => {
     startSession(selectedMode, duration, blockSocial, webFilter);
@@ -102,19 +110,37 @@ export function StartSessionScreen() {
         <div>
           <p className="text-slate-500 text-xs mb-3">المدة (دقيقة)</p>
           <div className="bg-slate-900 border border-slate-800 rounded-xl p-4">
+            <div className="flex items-center justify-between gap-3 mb-4">
+              <div className={`text-2xl font-bold bg-gradient-to-r ${selectedModeData.color} bg-clip-text text-transparent tabular-nums`}>
+                {duration >= 60
+                  ? `${Math.floor(duration / 60)}h ${duration % 60 > 0 ? `${duration % 60}m` : ''}`
+                  : `${duration}m`}
+              </div>
+              <div className="flex items-center gap-2 bg-slate-950 border border-slate-800 rounded-xl px-3 py-2">
+                <input
+                  type="number"
+                  min={MIN_DURATION}
+                  max={MAX_DURATION}
+                  value={duration}
+                  onChange={(e) => updateDuration(Number(e.target.value || MIN_DURATION))}
+                  className="w-16 bg-transparent text-white text-center text-lg font-semibold outline-none [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+                />
+                <span className="text-slate-500 text-xs">دقيقة</span>
+              </div>
+            </div>
             <input
               type="range"
-              min="15"
-              max="480"
-              step="15"
+              min={MIN_DURATION}
+              max={MAX_DURATION}
+              step="1"
               value={duration}
-              onChange={(e) => setDuration(Number(e.target.value))}
+              onChange={(e) => updateDuration(Number(e.target.value))}
               className="w-full"
             />
-            <div className={`text-center mt-3 text-2xl font-bold bg-gradient-to-r ${selectedModeData.color} bg-clip-text text-transparent tabular-nums`}>
-              {duration >= 60
-                ? `${Math.floor(duration / 60)}h ${duration % 60 > 0 ? `${duration % 60}m` : ''}`
-                : `${duration}m`}
+            <div className="flex items-center justify-between mt-3 text-[11px] text-slate-500">
+              <span>1 دقيقة</span>
+              <span>اختر أي مدة للتجربة أو التركيز الطويل</span>
+              <span>8 ساعات</span>
             </div>
           </div>
         </div>

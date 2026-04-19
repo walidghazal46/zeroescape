@@ -1,5 +1,4 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-import { Smartphone } from 'lucide-react';
 import { SplashScreen } from './components/SplashScreen';
 import { LoginScreen } from './components/LoginScreen';
 import { SignUpScreen } from './components/SignUpScreen';
@@ -94,9 +93,16 @@ function MobileOnlyGuard({ children }: { children: ReactNode }) {
       {/* CTA */}
       <div className="flex flex-col items-center gap-3 w-full max-w-sm">
         <div className="flex items-center gap-3 w-full justify-center rounded-2xl border border-slate-700 bg-slate-900 px-6 py-4">
-          <Smartphone className="w-6 h-6 text-sky-400 flex-shrink-0" />
+          <div className="w-11 h-11 rounded-xl bg-slate-950 border border-slate-800 flex items-center justify-center flex-shrink-0">
+            <svg viewBox="0 0 512 512" className="w-6 h-6" aria-hidden="true">
+              <path fill="#00d7ff" d="M98 72l228 184-68 55L98 72z" />
+              <path fill="#00f076" d="M98 72l160 239-1 1L98 440V72z" />
+              <path fill="#ff4f81" d="M98 440l228-184-68-55L98 440z" />
+              <path fill="#ffd84d" d="M326 256l46-37c18-15 18-39 0-54l-46-37-69 56 69 72z" />
+            </svg>
+          </div>
           <div className="text-right">
-            <p className="text-white text-sm font-medium">متاح على أندرويد</p>
+            <p className="text-white text-sm font-medium">متوفر على Google Play</p>
             <p className="text-slate-500 text-xs">حمّل التطبيق وابدأ أول جلسة تركيز حقيقية</p>
           </div>
         </div>
