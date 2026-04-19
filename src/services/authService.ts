@@ -215,10 +215,14 @@ export const authService = {
       createdAt: Date.now(),
     };
 
-    await setDoc(doc(db, 'users', result.user.uid), {
+    // Write to Firestore in background — do NOT await so signup never hangs.
+    // onAuthStateChanged will also sync the doc; a race here is acceptable.
+    setDoc(doc(db, 'users', result.user.uid), {
       ...userDoc,
       lastLogin: serverTimestamp(),
-    }, { merge: true });
+    }, { merge: true }).catch((e) =>
+      console.warn('signUpWithEmail: Firestore write failed (non-fatal):', e)
+    );
 
     return userDoc;
   },
@@ -253,7 +257,30 @@ export const authService = {
 
   signInWithEmail: async (email: string, password: string): Promise<User> => {
     const result = await signInWithEmailAndPassword(auth, email, password);
-    return authService.normalizeFirebaseUser(result.user);
+    // normalizeFirebaseUser reads/writes Firestore — run with timeout fallback
+    try {
+      const userWithTimeout = await Promise.race([
+        authService.normalizeFirebaseUser(result.user),
+        new Promise<never>((_, reject) =>
+          setTimeout(() => reject(new Error('firestore-timeout')), 8000)
+        ),
+      ]);
+      return userWithTimeout;
+    } catch (e: unknown) {
+      // Firestore slow/offline — return minimal user from Firebase Auth
+      const isTimeout = e instanceof Error && e.message === 'firestore-timeout';
+      if (isTimeout) console.warn('signInWithEmail: Firestore timeout, using Auth data');
+      else throw e;
+      return {
+        id: result.user.uid,
+        email: result.user.email,
+        name: result.user.displayName,
+        type: 'email',
+        subscriptionStatus: 'free',
+        deviceId: localStorage.getItem('zeroEscape_deviceId') || '',
+        createdAt: Date.now(),
+      };
+    }
   },
 
   logout: async (): Promise<void> => {
