@@ -127,10 +127,29 @@ public class MainActivity extends AppCompatActivity {
         @JavascriptInterface
         public void openBootSettings() {
             runOnUiThread(() -> {
-                // Try device-specific autostart settings in order
                 String pkg = getPackageName();
                 android.net.Uri pkgUri = android.net.Uri.parse("package:" + pkg);
 
+                // ── Step 1: Try direct battery optimisation exemption dialog ──────────
+                // This works on ALL Android versions (stock + custom ROMs) and is the
+                // correct modern approach. Requires REQUEST_IGNORE_BATTERY_OPTIMIZATIONS.
+                try {
+                    android.os.PowerManager pm =
+                        (android.os.PowerManager) getSystemService(POWER_SERVICE);
+                    if (pm != null && !pm.isIgnoringBatteryOptimizations(pkg)) {
+                        Intent batteryIntent = new Intent(
+                            Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS);
+                        batteryIntent.setData(pkgUri);
+                        startActivity(batteryIntent);
+                        return;
+                    }
+                    // Already exempted — open the battery settings page so user can verify
+                    startActivity(new Intent(Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS)
+                        .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK));
+                    return;
+                } catch (Exception ignored) {}
+
+                // ── Step 2: Manufacturer-specific Autostart pages ─────────────────────
                 Intent[] candidates = {
                     // Xiaomi / MIUI
                     makeIntent("com.miui.securitycenter",
@@ -164,11 +183,23 @@ public class MainActivity extends AppCompatActivity {
                     } catch (Exception ignored) {}
                 }
 
-                // Universal fallback: App Details (user can find Battery/Autostart there)
+                // ── Step 3: App Details as final fallback ─────────────────────────────
                 startActivity(new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
                     .setData(pkgUri)
                     .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK));
             });
+        }
+
+        /** Returns true if this app is excluded from battery optimisation (=can run in background). */
+        @JavascriptInterface
+        public boolean isBatteryOptimizationIgnored() {
+            try {
+                android.os.PowerManager pm =
+                    (android.os.PowerManager) getSystemService(POWER_SERVICE);
+                return pm != null && pm.isIgnoringBatteryOptimizations(getPackageName());
+            } catch (Exception e) {
+                return false;
+            }
         }
 
         private Intent makeIntent(String packageName, String className) {

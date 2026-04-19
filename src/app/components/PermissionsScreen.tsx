@@ -14,6 +14,7 @@ declare global {
       isAccessibilityGranted: () => boolean;
       isDeviceAdminGranted: () => boolean;
       isVpnPermissionGranted: () => boolean;
+      isBatteryOptimizationIgnored: () => boolean;
       startVpnBlocking: () => void;
       stopVpnBlocking: () => void;
       startImmersiveMode: () => void;
@@ -74,10 +75,10 @@ const buildPermissions = (): Permission[] => [
   {
     id: 'boot',
     icon: Power,
-    title: 'التشغيل التلقائي',
-    description: 'لمواصلة الجلسة بعد إعادة التشغيل',
+    title: 'تجاهل تحسين البطارية',
+    description: 'للاستمرار في عمل التطبيق بعد إعادة التشغيل وفي الخلفية',
     open: () => window.Android?.openBootSettings(),
-    check: () => false,
+    check: () => window.Android?.isBatteryOptimizationIgnored() ?? false,
     required: false,
   },
 ];
