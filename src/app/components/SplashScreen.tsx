@@ -53,7 +53,7 @@ export function SplashScreen() {
       {/* Text */}
       <div className="text-center">
         <h1 className="text-white text-2xl font-bold tracking-tight">ZeroEscape No.1</h1>
-        <p className="text-slate-500 text-sm mt-1">التركيز والحماية الرقمية</p>
+        <p className="text-slate-500 text-sm mt-1">التطبيق الأول في منع الإباحية وإدمان الموبايل</p>
       </div>
 
       {/* Loading dots */}

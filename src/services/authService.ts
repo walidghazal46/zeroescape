@@ -14,7 +14,8 @@ import {
 } from 'firebase/auth';
 import { auth, db } from '../config/firebase';
 import { doc, setDoc, getDoc, serverTimestamp } from 'firebase/firestore';
-import { User, ADMIN_EMAIL } from '../store/authStore';
+import { User, ADMIN_EMAIL, REGISTERED_TRIAL_DAYS, GUEST_TRIAL_DAYS, type AccountStatus } from '../store/authStore';
+import { subscriptionService } from './subscriptionService';
 
 const googleProvider = new GoogleAuthProvider();
 googleProvider.addScope('profile');
@@ -55,16 +56,22 @@ export const getAuthErrorCode = (error: unknown): string => {
   return authError?.code || 'auth/unknown';
 };
 
-const buildLocalGuestUser = (): User => ({
-  id: `guest_${Date.now()}`,
-  email: null,
-  name: 'ضيف',
-  type: 'guest',
-  guestExpiresAt: Date.now() + 48 * 60 * 60 * 1000,
-  subscriptionStatus: 'free',
-  deviceId: localStorage.getItem('zeroEscape_deviceId') || '',
-  createdAt: Date.now(),
-});
+const buildLocalGuestUser = (): User => {
+  const now = Date.now();
+  return {
+    id: `guest_${now}`,
+    email: null,
+    name: 'ضيف',
+    type: 'guest',
+    accountStatus: 'guest_trial',
+    trialStartAt: now,
+    trialEndAt: now + GUEST_TRIAL_DAYS * 24 * 60 * 60 * 1000,
+    guestExpiresAt: now + GUEST_TRIAL_DAYS * 24 * 60 * 60 * 1000,
+    subscriptionStatus: 'free',
+    deviceId: localStorage.getItem('zeroEscape_deviceId') || '',
+    createdAt: now,
+  };
+};
 
 export const authService = {
   normalizeFirebaseUser: async (firebaseUser: FirebaseAuthUser): Promise<User> => {
@@ -89,37 +96,79 @@ export const authService = {
     }
 
     const existingUser = await getDoc(doc(db, 'users', firebaseUser.uid));
+    const isAdmin = firebaseUser.email === ADMIN_EMAIL;
+    const deviceId = localStorage.getItem('zeroEscape_deviceId') || '';
+
+    // ── Device binding check (skip for admin) ────────────────────────────
+    if (!isAdmin && deviceId) {
+      const conflictUserId = await subscriptionService.checkDeviceBinding(deviceId, firebaseUser.uid);
+      if (conflictUserId) {
+        // Throw a structured error that LoginScreen can catch and display
+        throw Object.assign(
+          new Error('This device is already linked to another account.'),
+          { code: 'auth/device-conflict', conflictUserId }
+        );
+      }
+    }
+
+    // Bind device in background
+    if (deviceId) {
+      subscriptionService.bindDevice(deviceId, firebaseUser.uid, firebaseUser.email).catch(
+        e => console.warn('bindDevice non-fatal:', e)
+      );
+    }
 
     if (existingUser.exists()) {
       const userDoc = existingUser.data() as User;
-      const isAdmin = firebaseUser.email === ADMIN_EMAIL;
+      // Compute live account status from Firestore dates
+      const now = Date.now();
+      let accountStatus: AccountStatus = userDoc.accountStatus ?? 'registered_trial';
+      if (isAdmin) {
+        accountStatus = 'active';
+      } else if (accountStatus !== 'suspended') {
+        // Re-derive from dates so status doesn't get stale
+        if (userDoc.subscriptionEndAt && now < userDoc.subscriptionEndAt) {
+          accountStatus = 'active';
+        } else if (userDoc.trialEndAt && now < userDoc.trialEndAt) {
+          accountStatus = 'registered_trial';
+        } else if (userDoc.accountStatus === 'active' || userDoc.accountStatus === 'registered_trial') {
+          // Was active/trial but dates say it's over
+          accountStatus = 'expired';
+        }
+      }
 
       await setDoc(doc(db, 'users', firebaseUser.uid), {
-        deviceId: localStorage.getItem('zeroEscape_deviceId') || '',
+        deviceId,
         lastLogin: serverTimestamp(),
         isAdmin,
-        // Always keep admin premium even if DB has something else
+        accountStatus,
         subscriptionStatus: isAdmin ? 'premium' : userDoc.subscriptionStatus,
       }, { merge: true });
 
       return {
         ...userDoc,
         isAdmin,
+        accountStatus,
         subscriptionStatus: isAdmin ? 'premium' : userDoc.subscriptionStatus,
-        deviceId: localStorage.getItem('zeroEscape_deviceId') || userDoc.deviceId,
+        deviceId,
       };
     }
 
-    const isAdmin = firebaseUser.email === ADMIN_EMAIL;
+    // ── New user — initialize with trial ─────────────────────────────────
+    const now = Date.now();
+    const trialEndAt = now + REGISTERED_TRIAL_DAYS * 24 * 60 * 60 * 1000;
 
     const fallbackUser: User = {
       id: firebaseUser.uid,
       email: firebaseUser.email,
       name: firebaseUser.displayName,
       type: getUserTypeFromProvider(firebaseUser),
+      accountStatus: isAdmin ? 'active' : 'registered_trial',
+      trialStartAt: now,
+      trialEndAt,
       subscriptionStatus: isAdmin ? 'premium' : 'free',
-      deviceId: localStorage.getItem('zeroEscape_deviceId') || '',
-      createdAt: Date.now(),
+      deviceId,
+      createdAt: now,
       isAdmin,
     };
 
@@ -137,7 +186,7 @@ export const authService = {
         const androidWindow = window as AndroidWindow;
         const bridge = androidWindow.Android;
 
-        if (bridge?.startGoogleSignIn) {
+        if (bridge && bridge.startGoogleSignIn) {
           return await new Promise<User>((resolve, reject) => {
             let settled = false;
 
@@ -214,18 +263,25 @@ export const authService = {
         )
       ),
     ]);
+
+    const now = Date.now();
+    const deviceId = localStorage.getItem('zeroEscape_deviceId') || '';
+    const trialEndAt = now + REGISTERED_TRIAL_DAYS * 24 * 60 * 60 * 1000;
+
     const userDoc: User = {
       id: result.user.uid,
       email: result.user.email,
       name,
       type: 'email',
+      accountStatus: 'registered_trial',
+      trialStartAt: now,
+      trialEndAt,
       subscriptionStatus: 'free',
-      deviceId: localStorage.getItem('zeroEscape_deviceId') || '',
-      createdAt: Date.now(),
+      deviceId,
+      createdAt: now,
     };
 
     // Write to Firestore in background — do NOT await so signup never hangs.
-    // onAuthStateChanged will also sync the doc; a race here is acceptable.
     setDoc(doc(db, 'users', result.user.uid), {
       ...userDoc,
       lastLogin: serverTimestamp(),
@@ -233,21 +289,32 @@ export const authService = {
       console.warn('signUpWithEmail: Firestore write failed (non-fatal):', e)
     );
 
+    // Bind device in background
+    if (deviceId) {
+      subscriptionService.bindDevice(deviceId, result.user.uid, result.user.email).catch(
+        e => console.warn('bindDevice non-fatal:', e)
+      );
+    }
+
     return userDoc;
   },
 
   createGuestUser: async (): Promise<User> => {
     try {
       const result = await signInAnonymously(auth);
+      const now = Date.now();
       const guestUser: User = {
         id: result.user.uid,
         email: null,
         name: 'ضيف',
         type: 'guest',
-        guestExpiresAt: Date.now() + 48 * 60 * 60 * 1000,
+        accountStatus: 'guest_trial',
+        trialStartAt: now,
+        trialEndAt: now + GUEST_TRIAL_DAYS * 24 * 60 * 60 * 1000,
+        guestExpiresAt: now + GUEST_TRIAL_DAYS * 24 * 60 * 60 * 1000,
         subscriptionStatus: 'free',
         deviceId: localStorage.getItem('zeroEscape_deviceId') || '',
-        createdAt: Date.now(),
+        createdAt: now,
       };
 
       await setDoc(doc(db, 'guests', guestUser.id), {
@@ -285,6 +352,7 @@ export const authService = {
         email: result.user.email,
         name: result.user.displayName,
         type: 'email',
+        accountStatus: 'registered_trial',
         subscriptionStatus: 'free',
         deviceId: localStorage.getItem('zeroEscape_deviceId') || '',
         createdAt: Date.now(),
@@ -357,6 +425,7 @@ export const authService = {
           email: firebaseUser.email,
           name: firebaseUser.displayName,
           type: 'email',
+          accountStatus: 'registered_trial',
           subscriptionStatus: 'free',
           deviceId: localStorage.getItem('zeroEscape_deviceId') || '',
           createdAt: Date.now(),

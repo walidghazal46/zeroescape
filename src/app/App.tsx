@@ -18,6 +18,8 @@ import { SettingsScreen } from './components/SettingsScreen';
 import { GuestExpirationScreen } from './components/GuestExpirationScreen';
 import { SubscriptionScreen } from './components/SubscriptionScreen';
 import { ScheduleScreen } from './components/ScheduleScreen';
+import { AdminPinScreen } from './components/AdminPinScreen';
+import { AdminScreen } from './components/AdminScreen';
 import { useAuthStore } from '../store/authStore';
 import { usePreferencesStore } from '../store/preferencesStore';
 import { useSessionStore } from '../store/sessionStore';
@@ -117,7 +119,7 @@ function MobileOnlyGuard({ children }: { children: ReactNode }) {
 }
 
 function ProtectedRoute({ children }: { children: ReactNode }) {
-  const { user, isGuestExpired } = useAuthStore();
+  const { user, isGuestExpired, hasAccess } = useAuthStore();
   const { onboardingCompleted } = usePreferencesStore();
 
   if (!user) {
@@ -129,6 +131,12 @@ function ProtectedRoute({ children }: { children: ReactNode }) {
     return <>{children}</>;
   }
 
+  // Check subscription / trial access
+  if (!hasAccess()) {
+    return <Navigate to="/subscription-required" replace />;
+  }
+
+  // Legacy guest expiry fallback
   if (user.type === 'guest' && isGuestExpired()) {
     return <Navigate to="/subscription-required" replace />;
   }
@@ -269,6 +277,8 @@ function AppRoutes() {
       <Route path="/guest-expiration" element={<ProtectedRoute><GuestExpirationScreen /></ProtectedRoute>} />
       <Route path="/subscription" element={<SubscriptionScreen />} />
       <Route path="/subscription-required" element={<SubscriptionScreen />} />
+      <Route path="/admin-pin" element={<AdminPinScreen />} />
+      <Route path="/admin" element={<AdminScreen />} />
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
     {/* ── In-app exit confirmation dialog ─────────────────────────────── */}
