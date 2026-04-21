@@ -22,6 +22,13 @@ public class BootReceiver extends BroadcastReceiver {
                 || "android.intent.action.QUICKBOOT_POWERON".equals(action)
                 || "com.htc.intent.action.QUICKBOOT_POWERON".equals(action)) {
 
+            // Only re-launch if there was an active protected session before the reboot
+            // or if there is a pending scheduled session.
+            boolean hadActiveSession = MainActivity.isProtectedSessionActive(context);
+            boolean hasPendingSchedule = ScheduleAlarmReceiver.hasPendingSession(context);
+
+            if (!hadActiveSession && !hasPendingSchedule) return;
+
             // Re-launch the app so the user is returned to their active session
             Intent launch = context.getPackageManager()
                     .getLaunchIntentForPackage(context.getPackageName());

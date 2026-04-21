@@ -32,7 +32,7 @@ public class ScheduleAlarmReceiver extends BroadcastReceiver {
     private static final String PREFS_NAME          = "zeroescape_runtime";
     private static final String KEY_PENDING_SESSION  = "pending_scheduled_session";
     private static final String CHANNEL_ID           = "zeroescape_schedule";
-    private static final int    NOTIF_ID             = 2001;
+    private static final int    NOTIF_ID             = 2002;
 
     @Override
     public void onReceive(Context context, Intent intent) {
@@ -176,6 +176,13 @@ public class ScheduleAlarmReceiver extends BroadcastReceiver {
             PendingIntent.FLAG_NO_CREATE | PendingIntent.FLAG_IMMUTABLE
         );
         if (pi != null) am.cancel(pi);
+    }
+
+    /** Returns true if there is a pending session without consuming it. */
+    public static boolean hasPendingSession(Context context) {
+        android.content.SharedPreferences prefs =
+            context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
+        return prefs.contains(KEY_PENDING_SESSION);
     }
 
     /** Retrieve and clear the pending session JSON (called once by MainActivity on launch). */

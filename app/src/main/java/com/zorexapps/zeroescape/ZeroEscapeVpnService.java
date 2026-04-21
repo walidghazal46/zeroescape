@@ -41,6 +41,13 @@ public class ZeroEscapeVpnService extends VpnService {
     private ExecutorService      executor;
     private final AtomicBoolean  running = new AtomicBoolean(false);
 
+    private static ZeroEscapeVpnService instance;
+
+    /** Returns true if the VPN service is currently running. */
+    public static boolean isRunning() {
+        return instance != null && instance.running.get();
+    }
+
     // ─────────────────────────────────────────────────────────────────────────
     // Blocked domains — checked via exact match OR subdomain suffix match.
     // NOT shown in any UI; invisible to the end-user.
@@ -120,6 +127,7 @@ public class ZeroEscapeVpnService extends VpnService {
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
+        instance = this;
         if (intent != null && ACTION_STOP.equals(intent.getAction())) {
             stopVpn();
             stopForeground(true);
@@ -141,6 +149,7 @@ public class ZeroEscapeVpnService extends VpnService {
 
     @Override
     public void onDestroy() {
+        instance = null;
         stopVpn();
         super.onDestroy();
     }

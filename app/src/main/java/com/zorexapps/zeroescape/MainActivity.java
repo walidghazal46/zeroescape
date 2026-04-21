@@ -52,6 +52,11 @@ public class MainActivity extends AppCompatActivity {
     private ActivityResultLauncher<Intent> vpnPermissionLauncher;
     private ActivityResultLauncher<Intent> deviceAdminLauncher;
     private boolean vpnServiceRunning = false;
+
+    /** Sync VPN running state from the service singleton on activity start. */
+    private void syncVpnRunningState() {
+        vpnServiceRunning = ZeroEscapeVpnService.isRunning();
+    }
     private boolean sessionActive = false;
 
     public static boolean isProtectedSessionActive(Context context) {
@@ -556,11 +561,28 @@ public class MainActivity extends AppCompatActivity {
                 .addPathHandler("/", new WebViewAssetLoader.AssetsPathHandler(this))
                 .build();
 
+        // Capture pending session before WebView loads (consumed once on launch)
+        final String pendingSessionJson = ScheduleAlarmReceiver.consumePendingSession(this);
+
         webView.setWebViewClient(new WebViewClient() {
             @Override
             @Nullable
             public WebResourceResponse shouldInterceptRequest(WebView view, WebResourceRequest request) {
                 return assetLoader.shouldInterceptRequest(request.getUrl());
+            }
+
+            @Override
+            public void onPageFinished(WebView view, String url) {
+                super.onPageFinished(view, url);
+                // Fire pending scheduled session once the page is fully loaded
+                if (pendingSessionJson != null) {
+                    String script = "(function(){" +
+                        "if(typeof window.onScheduledSessionFire==='function'){" +
+                        "window.onScheduledSessionFire(" + pendingSessionJson + ");" +
+                        "}" +
+                        "})();";
+                    view.evaluateJavascript(script, null);
+                }
             }
         });
 
@@ -568,34 +590,6 @@ public class MainActivity extends AppCompatActivity {
         webView.loadUrl("https://appassets.androidplatform.net/index.html");
 
         setContentView(webView);
-
-        // ── Handle pending scheduled session ─────────────────────────────────
-        // If a ScheduleAlarmReceiver alarm fired while the app was closed, the receiver
-        // stored the pending session in SharedPreferences.  We consume it here and
-        // pass it to the JS layer once the WebView is ready.
-        checkPendingScheduledSession();
-    }
-
-    /**
-     * If a scheduled alarm fired, notify the JS layer so it can navigate to
-     * /active-session with the correct params.
-     */
-    private void checkPendingScheduledSession() {
-        String pending = ScheduleAlarmReceiver.consumePendingSession(this);
-        if (pending == null) return;
-
-        final String json = pending;
-        // Delay slightly so the WebView has time to finish loading
-        webView.postDelayed(() -> {
-            if (webView == null) return;
-            String escaped = json.replace("\\", "\\\\").replace("\"", "\\\"");
-            String script = "(function(){" +
-                "if(typeof window.onScheduledSessionFire==='function'){" +
-                "window.onScheduledSessionFire(" + json + ");" +
-                "}" +
-                "})();";
-            webView.evaluateJavascript(script, null);
-        }, 1500);
     }
 
     /**
@@ -738,6 +732,8 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
+        syncVpnRunningState();
+        if (sessionActive) applyImmersiveMode();
         if (webView != null) {
             webView.post(() -> webView.evaluateJavascript(
                 "(function(){" +
