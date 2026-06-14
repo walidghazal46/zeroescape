@@ -43,6 +43,9 @@ function isAndroidApp(): boolean {
 }
 
 function MobileOnlyGuard({ children }: { children: ReactNode }) {
+  // Temporarily bypassed to preview in browser
+  return <>{children}</>;
+
   if (isAndroidApp()) return <>{children}</>;
 
   return (
@@ -370,11 +373,11 @@ function AppRoutes() {
 
           {/* Inner card */}
           <div
-            className="relative bg-[#1a0a0a] border border-red-900/60 p-6"
+            className="relative bg-[#1a0a0a] border border-red-900/60 p-6 shadow-[0_0_50px_rgba(220,38,38,0.15)]"
             style={{ borderRadius: 28 }}
           >
             {/* Top glow strip */}
-            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-2/3 h-px bg-gradient-to-r from-transparent via-red-600/60 to-transparent" />
+            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-2/3 h-px bg-gradient-to-r from-transparent via-red-600/40 to-transparent" />
 
             {/* Icon */}
             <div className="flex justify-center mb-4">

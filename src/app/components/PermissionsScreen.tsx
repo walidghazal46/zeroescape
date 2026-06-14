@@ -122,7 +122,7 @@ export function PermissionsScreen() {
 
   return (
     <div
-      className="min-h-screen bg-slate-950 flex flex-col px-4 overflow-y-auto hide-scrollbar"
+      className="min-h-screen bg-background flex flex-col px-4 overflow-y-auto hide-scrollbar"
       style={{
         paddingTop: `calc(env(safe-area-inset-top, 0px) + 20px)`,
         paddingBottom: `calc(env(safe-area-inset-bottom, 0px) + 24px)`,
@@ -130,15 +130,15 @@ export function PermissionsScreen() {
     >
       <div className="flex items-center gap-3 mb-2">
           <button
-            onClick={() => navigate(-1)}
-            className="w-9 h-9 flex items-center justify-center text-slate-400 hover:text-white transition flex-shrink-0"
+            onClick={() => navigate('/onboarding', { replace: true })}
+            className="w-9 h-9 flex items-center justify-center text-muted-foreground hover:text-foreground transition flex-shrink-0"
           >
             <ChevronRight className="w-6 h-6" />
           </button>
         </div>
         <div className="mb-5">
-        <h1 className="text-white text-2xl font-bold mb-1">الأذونات المطلوبة</h1>
-        <p className="text-slate-400 text-sm">يجب منح هذه الصلاحيات حتى يعمل التطبيق بشكل كامل</p>
+        <h1 className="text-foreground text-2xl font-bold mb-1">الأذونات المطلوبة</h1>
+        <p className="text-muted-foreground text-sm">يجب منح هذه الصلاحيات حتى يعمل التطبيق بشكل كامل</p>
       </div>
 
       {/* Refresh button */}
@@ -159,20 +159,20 @@ export function PermissionsScreen() {
             <button
               key={permission.id}
               onClick={() => handleOpen(permission)}
-              className="w-full bg-slate-900 rounded-2xl p-5 flex items-center gap-4 active:bg-slate-800 transition border border-slate-800"
+              className="w-full bg-card rounded-2xl p-5 flex items-center gap-4 active:bg-muted transition border border-border"
             >
               <div className={`p-3 rounded-xl ${isGranted ? 'bg-green-500/20' : 'bg-red-500/10'}`}>
-                <Icon className={`w-6 h-6 ${isGranted ? 'text-green-400' : permission.required ? 'text-red-400' : 'text-slate-400'}`} />
+                <Icon className={`w-6 h-6 ${isGranted ? 'text-green-400' : permission.required ? 'text-red-400' : 'text-muted-foreground'}`} />
               </div>
 
               <div className="flex-1 text-right">
                 <div className="flex items-center justify-end gap-2 mb-1">
-                  <h3 className="text-white font-medium">{permission.title}</h3>
+                  <h3 className="text-foreground font-medium">{permission.title}</h3>
                   {permission.required && (
                     <span className="text-xs text-red-400 bg-red-500/10 px-2 py-0.5 rounded-full">مطلوب</span>
                   )}
                 </div>
-                <p className="text-slate-400 text-sm">{permission.description}</p>
+                <p className="text-muted-foreground text-sm">{permission.description}</p>
                 {!isAndroid() && (
                   <p className="text-yellow-500 text-xs mt-1">اضغط لمنح الصلاحية من الجهاز</p>
                 )}
@@ -181,7 +181,7 @@ export function PermissionsScreen() {
               {isGranted ? (
                 <CheckCircle2 className="w-6 h-6 text-green-400 flex-shrink-0" />
               ) : (
-                <XCircle className={`w-6 h-6 flex-shrink-0 ${permission.required ? 'text-red-400' : 'text-slate-600'}`} />
+                <XCircle className={`w-6 h-6 flex-shrink-0 ${permission.required ? 'text-red-400' : 'text-muted-foreground'}`} />
               )}
             </button>
           );
@@ -200,7 +200,7 @@ export function PermissionsScreen() {
         className={`w-full py-4 rounded-2xl transition ${
           !isAndroid() || allRequiredGranted
             ? 'bg-gradient-to-r from-blue-500 to-violet-600 text-white hover:opacity-90'
-            : 'bg-slate-800 text-slate-500 cursor-not-allowed'
+            : 'bg-muted text-muted-foreground cursor-not-allowed'
         }`}
       >
         {allRequiredGranted || !isAndroid() ? 'متابعة إلى التطبيق' : 'منح الأذونات المطلوبة أولاً'}

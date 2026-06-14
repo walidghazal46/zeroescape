@@ -13,6 +13,9 @@ export interface ScheduleEntry {
   mode: string;             // study | work | sleep | deep_detox | custom
   days: DayOfWeek[];        // which days are active
   enabled: boolean;
+  blockSocial: boolean;     // حظر تطبيقات التواصل
+  webFilter: boolean;       // تصفية الويب
+  fullBlock: boolean;       // حظر كامل — وضع الديتوكس
 }
 
 export interface ScheduleStore {

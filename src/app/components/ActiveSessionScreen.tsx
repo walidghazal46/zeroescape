@@ -194,7 +194,7 @@ export function ActiveSessionScreen() {
     // Fixed + inset-0 covers everything including status bar area on mobile
     <div
       ref={containerRef}
-      className="fixed inset-0 bg-slate-950 flex flex-col items-center justify-center overflow-hidden select-none"
+      className="fixed inset-0 bg-background flex flex-col items-center justify-center overflow-hidden select-none"
       style={{ zIndex: 9999, touchAction: 'none' }}
     >
       {/* Warning flash when user tries to leave */}
@@ -235,7 +235,7 @@ export function ActiveSessionScreen() {
         {/* Circular timer — uses vmin so it scales on both portrait and landscape */}
         <div className="relative flex items-center justify-center" style={{ width: '60vmin', height: '60vmin', maxWidth: '256px', maxHeight: '256px' }}>
           <svg className="absolute inset-0 w-full h-full -rotate-90" viewBox="0 0 200 200">
-            <circle cx="100" cy="100" r="90" stroke="#1e293b" strokeWidth="10" fill="none" />
+            <circle cx="100" cy="100" r="90" stroke="#d7ece4" strokeWidth="10" fill="none" />
             <circle
               cx="100" cy="100" r="90"
               stroke="url(#grad)"
@@ -254,33 +254,33 @@ export function ActiveSessionScreen() {
             </defs>
           </svg>
           <div className={`absolute inset-0 bg-gradient-to-r ${gradient} opacity-10 blur-3xl rounded-full`} />
-          <div className="relative bg-slate-900 rounded-full border-4 border-slate-800 w-[75%] h-[75%] flex flex-col items-center justify-center">
-            <div className="text-fluid-3xl font-bold text-white tabular-nums leading-none">
+          <div className="relative bg-card rounded-full border-4 border-border w-[75%] h-[75%] flex flex-col items-center justify-center">
+            <div className="text-fluid-3xl font-bold text-foreground tabular-nums leading-none">
               {String(hours).padStart(2, '0')}:{String(minutes).padStart(2, '0')}:{String(seconds).padStart(2, '0')}
             </div>
-            <p className="text-fluid-xs text-slate-400 mt-1">الوقت المتبقي</p>
+            <p className="text-fluid-xs text-muted-foreground mt-1">الوقت المتبقي</p>
           </div>
         </div>
 
         {/* Status indicators */}
         <div className="flex gap-[var(--sp-3)] w-full">
-          <div className="flex-1 bg-slate-900 rounded-2xl flex items-center gap-3 border border-red-500/20" style={{ padding: 'var(--sp-3) var(--sp-4)' }}>
+          <div className="flex-1 bg-card rounded-2xl flex items-center gap-3 border border-red-500/20" style={{ padding: 'var(--sp-3) var(--sp-4)' }}>
             <div className="bg-red-500/20 rounded-lg flex-shrink-0" style={{ padding: 'var(--sp-2)' }}>
               <ShieldCheck className="icon-md text-red-400" />
             </div>
             <div className="text-right flex-1 min-w-0">
-              <p className="text-fluid-xs text-slate-400">التطبيقات</p>
-              <p className="text-fluid-sm text-white font-medium">محظورة</p>
+              <p className="text-fluid-xs text-muted-foreground">التطبيقات</p>
+              <p className="text-fluid-sm text-foreground font-medium">محظورة</p>
             </div>
           </div>
 
-          <div className="flex-1 bg-slate-900 rounded-2xl flex items-center gap-3 border border-emerald-500/20" style={{ padding: 'var(--sp-3) var(--sp-4)' }}>
+          <div className="flex-1 bg-card rounded-2xl flex items-center gap-3 border border-emerald-500/20" style={{ padding: 'var(--sp-3) var(--sp-4)' }}>
             <div className="bg-emerald-500/20 rounded-lg flex-shrink-0" style={{ padding: 'var(--sp-2)' }}>
               <Globe className="icon-md text-emerald-400" />
             </div>
             <div className="text-right flex-1 min-w-0">
-              <p className="text-fluid-xs text-slate-400">الويب</p>
-              <p className="text-fluid-sm text-white font-medium">محمي</p>
+              <p className="text-fluid-xs text-muted-foreground">الويب</p>
+              <p className="text-fluid-sm text-foreground font-medium">محمي</p>
             </div>
           </div>
         </div>
@@ -292,14 +292,14 @@ export function ActiveSessionScreen() {
             if (document.fullscreenElement) document.exitFullscreen().catch(() => {});
             navigate('/emergency-exit');
           }}
-          className="w-full bg-slate-900 border-2 border-red-500/30 text-red-400 rounded-2xl flex items-center justify-center gap-2 active:bg-red-500/10 transition"
+          className="w-full bg-card border-2 border-red-500/30 text-red-400 rounded-2xl flex items-center justify-center gap-2 active:bg-red-500/10 transition"
           style={{ height: 'var(--btn-h)' }}
         >
           <AlertCircle className="icon-md" />
           <span className="text-fluid-sm font-medium">خروج طارئ</span>
         </button>
 
-        <p className="text-fluid-xs text-center text-slate-600">
+        <p className="text-fluid-xs text-center text-muted-foreground">
           ZeroEscape No.1 — الجلسة محمية بالكامل
         </p>
       </div>

@@ -7,6 +7,11 @@ import { useLocation, useNavigate } from 'react-router-dom';
  */
 const EXIT_ROUTES = new Set(['/', '/home', '/login', '/signup']);
 const SESSION_LOCKED_ROUTES = new Set(['/active-session', '/emergency-exit']);
+const BACK_FALLBACK_ROUTES: Record<string, string> = {
+  '/signup': '/login',
+  '/permissions': '/onboarding',
+  '/schedule': '/home',
+};
 
 /**
  * Registers window.onAndroidBack so MainActivity can call it when the
@@ -39,6 +44,8 @@ export function useAndroidBack(): {
           // In-app fallback dialog
           setShowExitDialog(true);
         }
+      } else if (BACK_FALLBACK_ROUTES[location.pathname]) {
+        navigate(BACK_FALLBACK_ROUTES[location.pathname], { replace: true });
       } else {
         navigate(-1);
       }
@@ -49,7 +56,10 @@ export function useAndroidBack(): {
     };
   }, [location.pathname, navigate]);
 
-  const dismissExitDialog = () => setShowExitDialog(false);
+  const dismissExitDialog = () => {
+    setShowExitDialog(false);
+    // Remove the red ambient glow or any specific state if needed
+  };
   const confirmExit = () => {
     setShowExitDialog(false);
     // Try native exit, fallback to window.close()

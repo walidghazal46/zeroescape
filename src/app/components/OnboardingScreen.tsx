@@ -39,15 +39,15 @@ export function OnboardingScreen() {
   // ── Step 1: Goal Selection ──────────────────────────────────────────────────
   if (step === 'goal') {
     return (
-      <div className="min-h-screen bg-slate-950 flex flex-col px-5 pt-safe pb-safe"
+      <div className="min-h-screen bg-background flex flex-col px-5 pt-safe pb-safe"
         style={{ paddingTop: `calc(env(safe-area-inset-top, 0px) + 32px)`, paddingBottom: `calc(env(safe-area-inset-bottom, 0px) + 24px)` }}>
         <div className="mb-7">
           <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-blue-500/15 rounded-full mb-4">
             <span className="w-2 h-2 rounded-full bg-blue-500" />
             <span className="text-blue-400 text-xs font-medium">الخطوة ١ من ٣</span>
           </div>
-          <h1 className="text-white text-2xl font-bold mb-1.5">ما هو هدفك الرئيسي؟</h1>
-          <p className="text-slate-400 text-sm leading-relaxed">
+          <h1 className="text-foreground text-2xl font-bold mb-1.5">ما هو هدفك الرئيسي؟</h1>
+          <p className="text-muted-foreground text-sm leading-relaxed">
             سنُخصص خطة Detox مناسبة لك تلقائياً
           </p>
         </div>
@@ -59,14 +59,14 @@ export function OnboardingScreen() {
               <button
                 key={goalId}
                 onClick={() => handleGoalSelect(goalId)}
-                className="w-full bg-slate-900 border border-slate-800 rounded-xl p-4 flex items-center gap-4 text-right hover:bg-slate-800 hover:border-slate-700 active:scale-[0.98] transition"
+                className="w-full bg-card border border-border rounded-xl p-4 flex items-center gap-4 text-right hover:bg-muted hover:border-border active:scale-[0.98] transition"
               >
                 <span className="text-3xl flex-shrink-0">{config.emoji}</span>
                 <div className="flex-1 min-w-0">
-                  <h3 className="text-white font-medium text-sm">{config.labelAr}</h3>
-                  <p className="text-slate-500 text-xs mt-0.5 leading-relaxed line-clamp-2">{config.motivationalAr}</p>
+                  <h3 className="text-foreground font-medium text-sm">{config.labelAr}</h3>
+                  <p className="text-muted-foreground text-xs mt-0.5 leading-relaxed line-clamp-2">{config.motivationalAr}</p>
                 </div>
-                <ChevronLeft className="w-5 h-5 text-slate-600 flex-shrink-0" />
+                <ChevronLeft className="w-5 h-5 text-muted-foreground flex-shrink-0" />
               </button>
             );
           })}
@@ -79,15 +79,15 @@ export function OnboardingScreen() {
   if (step === 'plan' && selectedGoal) {
     const config = USER_GOALS[selectedGoal];
     return (
-      <div className="min-h-screen bg-slate-950 flex flex-col px-5"
+      <div className="min-h-screen bg-background flex flex-col px-5"
         style={{ paddingTop: `calc(env(safe-area-inset-top, 0px) + 32px)`, paddingBottom: `calc(env(safe-area-inset-bottom, 0px) + 24px)` }}>
         <div className="mb-6">
           <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-blue-500/15 rounded-full mb-4">
             <span className="w-2 h-2 rounded-full bg-blue-500" />
             <span className="text-blue-400 text-xs font-medium">الخطوة ٢ من ٣</span>
           </div>
-          <h1 className="text-white text-2xl font-bold mb-1">خطتك المقترحة</h1>
-          <p className="text-slate-400 text-sm">
+          <h1 className="text-foreground text-2xl font-bold mb-1">خطتك المقترحة</h1>
+          <p className="text-muted-foreground text-sm">
             {config.emoji} {config.labelAr}
           </p>
         </div>
@@ -101,17 +101,17 @@ export function OnboardingScreen() {
           </div>
 
           {/* Suggested mode + duration */}
-          <div className="bg-slate-900 border border-slate-800 rounded-xl p-4">
-            <p className="text-slate-500 text-xs mb-3">وضع الجلسة الافتراضي</p>
+          <div className="bg-card border border-border rounded-xl p-4">
+            <p className="text-muted-foreground text-xs mb-3">وضع الجلسة الافتراضي</p>
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 bg-violet-500/20 rounded-xl flex items-center justify-center flex-shrink-0">
                 <span className="text-xl">🎯</span>
               </div>
               <div>
-                <p className="text-white font-medium capitalize">
+                <p className="text-foreground font-medium capitalize">
                   {config.suggestedMode.replace('_', ' ')}
                 </p>
-                <p className="text-slate-400 text-xs mt-0.5">
+                <p className="text-muted-foreground text-xs mt-0.5">
                   {config.suggestedDurationMinutes} دقيقة — مع الاحتكاك عند الكسر
                 </p>
               </div>
@@ -119,8 +119,8 @@ export function OnboardingScreen() {
           </div>
 
           {/* Suggested blocked apps */}
-          <div className="bg-slate-900 border border-slate-800 rounded-xl p-4">
-            <p className="text-slate-500 text-xs mb-3">
+          <div className="bg-card border border-border rounded-xl p-4">
+            <p className="text-muted-foreground text-xs mb-3">
               سيتم حظرها تلقائياً ({config.suggestedBlockedApps.length} تطبيق)
             </p>
             <div className="flex flex-wrap gap-2">
@@ -138,7 +138,7 @@ export function OnboardingScreen() {
           {/* Friction system explanation */}
           <div className="bg-amber-500/10 border border-amber-500/25 rounded-xl p-4">
             <h3 className="text-amber-400 text-sm font-semibold mb-2">🔒 نظام الاحتكاك</h3>
-            <p className="text-slate-400 text-xs leading-relaxed">
+            <p className="text-muted-foreground text-xs leading-relaxed">
               عند محاولة فتح أي تطبيق محظور: تمرين تنفس (٨ ثوانٍ) + سؤال "لماذا تريده الآن؟" + تسجيل المحاولة في تقريرك.
             </p>
           </div>
@@ -153,7 +153,7 @@ export function OnboardingScreen() {
           </button>
           <button
             onClick={() => setStep('goal')}
-            className="w-full h-11 rounded-xl bg-transparent border border-slate-800 text-slate-400 hover:bg-slate-900 transition text-sm"
+            className="w-full h-11 rounded-xl bg-transparent border border-border text-muted-foreground hover:bg-muted transition text-sm"
           >
             تغيير الهدف
           </button>
@@ -164,7 +164,7 @@ export function OnboardingScreen() {
 
   // ── Step 3: Ready ───────────────────────────────────────────────────────────
   return (
-    <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center px-5 text-center gap-6"
+    <div className="min-h-screen bg-background flex flex-col items-center justify-center px-5 text-center gap-6"
       style={{ paddingTop: `env(safe-area-inset-top, 0px)`, paddingBottom: `env(safe-area-inset-bottom, 0px)` }}>
       <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-blue-500/15 rounded-full">
         <span className="w-2 h-2 rounded-full bg-blue-500" />
@@ -175,8 +175,8 @@ export function OnboardingScreen() {
         <div className="w-20 h-20 bg-gradient-to-br from-emerald-500/20 to-teal-500/20 border border-emerald-500/30 rounded-full flex items-center justify-center mx-auto">
           <CheckCircle2 className="w-10 h-10 text-emerald-400" />
         </div>
-        <h1 className="text-white text-2xl font-bold">خطتك جاهزة!</h1>
-        <p className="text-slate-400 text-sm leading-relaxed max-w-xs">
+        <h1 className="text-foreground text-2xl font-bold">خطتك جاهزة!</h1>
+        <p className="text-muted-foreground text-sm leading-relaxed max-w-xs">
           الخطوة الأخيرة هي منح الصلاحيات اللازمة حتى يعمل التطبيق بكامل قوته
         </p>
       </div>

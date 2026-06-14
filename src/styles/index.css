@@ -49,7 +49,7 @@
 	--icon-sm:    clamp(1rem,    4.44vw, 1.25rem);        /* 16–20px icon             */
 	--icon-md:    clamp(1.25rem, 5.56vw, 1.5rem);         /* 20–24px icon             */
 	--icon-lg:    clamp(1.5rem,  6.67vw, 2rem);           /* 24–32px icon             */
-	--card-r:     clamp(0.75rem, 3.33vw, 1.25rem);        /* card border-radius       */
+	--card-r:     clamp(0.875rem, 3.33vw, 1.25rem);       /* card border-radius       */
 }
 
 /* ─── Tablet tier (≥600px logical width) ──────────────────────────────────── */
@@ -89,8 +89,7 @@ html,
 body,
 #root {
 	min-height: 100dvh;
-	background-color: rgb(2 6 23);
-	/* Prevent rubber-band scroll from revealing white background on iOS */
+	background-color: #f5f3ff;
 	overscroll-behavior: none;
 }
 
@@ -99,7 +98,6 @@ body {
 	font-size: var(--text-base);
 	-webkit-font-smoothing: antialiased;
 	-moz-osx-font-smoothing: grayscale;
-	/* Prevent iOS text-size-adjust when rotating */
 	-webkit-text-size-adjust: 100%;
 	text-size-adjust: 100%;
 }
@@ -185,6 +183,53 @@ button {
 	scrollbar-width: none;
 }
 
+/* ─── Gold shimmer animation ──────────────────────────────────────────────── */
+@keyframes ze-shimmer {
+  0%   { transform: translateX(-100%); }
+  100% { transform: translateX(200%); }
+}
+.ze-shimmer::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, transparent 0%, rgba(232,200,77,0.25) 50%, transparent 100%);
+  animation: ze-shimmer 2.5s infinite;
+}
+
+/* ─── Organic blob glow ───────────────────────────────────────────────────── */
+@keyframes ze-blob-float {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  33%       { transform: translate(6px, -8px) scale(1.04); }
+  66%       { transform: translate(-5px, 5px) scale(0.97); }
+}
+.ze-blob {
+  animation: ze-blob-float 9s ease-in-out infinite;
+}
+.ze-blob-delayed {
+  animation: ze-blob-float 11s ease-in-out 2s infinite;
+}
+
+/* ─── Input gold focus ────────────────────────────────────────────────────── */
+.ze-input:focus {
+  outline: none;
+  border-color: rgba(232, 200, 77, 0.6) !important;
+  box-shadow: 0 0 0 3px rgba(232, 200, 77, 0.1);
+}
+
+/* ─── Card hover lift ─────────────────────────────────────────────────────── */
+.ze-card-hover {
+  transition: transform 0.18s ease, box-shadow 0.18s ease;
+}
+.ze-card-hover:active {
+  transform: scale(0.975);
+}
+
+/* ─── Stat badge glow pulse ───────────────────────────────────────────────── */
+@keyframes ze-pulse-glow {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(232, 200, 77, 0); }
+  50%       { box-shadow: 0 0 16px 2px rgba(232, 200, 77, 0.18); }
+}
+
 /* ─── Tablet centring shim ────────────────────────────────────────────────────
    On wide screens, keep the single-column UI centred and add a subtle border */
 @media (min-width: 600px) and (max-width: 1024px) and (pointer: coarse) {
@@ -195,7 +240,7 @@ button {
 		width: min(100%, var(--screen-max));
 		max-width: var(--screen-max);
 		margin-inline: auto;
-		border-left:  1px solid rgba(255,255,255,0.06);
-		border-right: 1px solid rgba(255,255,255,0.06);
+		border-left:  1px solid rgba(100,80,220,0.1);
+		border-right: 1px solid rgba(100,80,220,0.1);
 	}
 }

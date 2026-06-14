@@ -87,7 +87,7 @@ export function EmergencyExitScreen() {
   if (countdownActive) {
     return (
       <div
-        className="min-h-screen bg-slate-950 flex flex-col items-center justify-center px-6 gap-8"
+        className="min-h-screen bg-background flex flex-col items-center justify-center px-6 gap-8"
         style={{
           paddingTop: `calc(env(safe-area-inset-top, 0px) + 16px)`,
           paddingBottom: `calc(env(safe-area-inset-bottom, 0px) + 16px)`,
@@ -95,14 +95,14 @@ export function EmergencyExitScreen() {
       >
         <div className="text-center space-y-2">
           <ShieldOff className="w-12 h-12 text-red-400 mx-auto" />
-          <h1 className="text-white text-2xl font-bold">فترة الخروج الطارئ</h1>
-          <p className="text-slate-400 text-sm">لديك 5 دقائق فقط خارج الجلسة</p>
+          <h1 className="text-foreground text-2xl font-bold">فترة الخروج الطارئ</h1>
+          <p className="text-muted-foreground text-sm">لديك 5 دقائق فقط خارج الجلسة</p>
         </div>
 
         {/* Circular countdown */}
         <div className="relative flex items-center justify-center">
           <svg className="w-48 h-48 -rotate-90" viewBox="0 0 160 160">
-            <circle cx="80" cy="80" r="68" stroke="#1e293b" strokeWidth="8" fill="none" />
+            <circle cx="80" cy="80" r="68" stroke="#e3f2ea" strokeWidth="8" fill="none" />
             <circle
               cx="80" cy="80" r="68"
               stroke="#ef4444"
@@ -115,7 +115,7 @@ export function EmergencyExitScreen() {
             />
           </svg>
           <div className="absolute flex flex-col items-center">
-            <span className="text-4xl font-bold text-white tabular-nums">
+            <span className="text-4xl font-bold text-foreground tabular-nums">
               {String(minutes).padStart(2, '0')}:{String(seconds).padStart(2, '0')}
             </span>
             <span className="text-red-400 text-xs mt-1">متبقي</span>
@@ -134,13 +134,13 @@ export function EmergencyExitScreen() {
               if (timerRef.current) clearInterval(timerRef.current);
               navigate('/active-session', { replace: true });
             }}
-            className="w-full py-4 rounded-2xl bg-slate-900 text-slate-300 hover:bg-slate-800 transition"
+            className="w-full py-4 rounded-2xl bg-card text-foreground hover:bg-muted transition"
           >
             العودة للجلسة
           </button>
         </div>
 
-        <p className="text-slate-600 text-xs text-center">
+        <p className="text-muted-foreground text-xs text-center">
           استخدامات الطوارئ اليوم: {todayCount} / {MAX_DAILY_USES}
         </p>
       </div>
@@ -150,15 +150,15 @@ export function EmergencyExitScreen() {
   // ─── PIN entry screen ────────────────────────────────────────────────────────
   return (
     <div
-      className="min-h-screen bg-slate-950 flex flex-col px-4 overflow-y-auto hide-scrollbar"
+      className="min-h-screen bg-background flex flex-col px-4 overflow-y-auto hide-scrollbar"
       style={{
         paddingTop: `calc(env(safe-area-inset-top, 0px) + 20px)`,
         paddingBottom: `calc(env(safe-area-inset-bottom, 0px) + 24px)`,
       }}
     >
       <div className="mb-8">
-        <h1 className="text-white text-2xl font-bold">خروج طارئ</h1>
-        <p className="text-slate-400 text-sm mt-1">
+        <h1 className="text-foreground text-2xl font-bold">خروج طارئ</h1>
+        <p className="text-muted-foreground text-sm mt-1">
           متاح {remainingUses} من {MAX_DAILY_USES} مرات اليوم
         </p>
       </div>
@@ -170,9 +170,9 @@ export function EmergencyExitScreen() {
           <AlertTriangle className="w-6 h-6 text-yellow-400 flex-shrink-0 mt-0.5" />
           <div className="text-right">
             <h3 className="text-yellow-400 font-medium mb-1">تحذير هام</h3>
-            <p className="text-slate-400 text-sm leading-relaxed">
-              سيُمنح لك <strong className="text-white">5 دقائق فقط</strong> خارج التطبيق.
-              بعدها ستعود تلقائياً للجلسة. الاستخدام محدود بـ <strong className="text-white">مرتين يومياً</strong>.
+            <p className="text-muted-foreground text-sm leading-relaxed">
+              سيُمنح لك <strong className="text-foreground">5 دقائق فقط</strong> خارج التطبيق.
+              بعدها ستعود تلقائياً للجلسة. الاستخدام محدود بـ <strong className="text-foreground">مرتين يومياً</strong>.
             </p>
           </div>
         </div>
@@ -182,7 +182,7 @@ export function EmergencyExitScreen() {
           <div className="bg-red-500/10 border border-red-500/30 rounded-2xl p-5 text-center space-y-2">
             <ShieldOff className="w-8 h-8 text-red-400 mx-auto" />
             <p className="text-red-400 font-medium">استنفدت الحد اليومي</p>
-            <p className="text-slate-400 text-sm">استخدمت الخروج الطارئ مرتين اليوم. جرّب غداً.</p>
+            <p className="text-muted-foreground text-sm">استخدمت الخروج الطارئ مرتين اليوم. جرّب غداً.</p>
           </div>
         )}
 
@@ -191,7 +191,7 @@ export function EmergencyExitScreen() {
           <div className="bg-orange-500/10 border border-orange-500/30 rounded-2xl p-5 text-center space-y-3">
             <Lock className="w-8 h-8 text-orange-400 mx-auto" />
             <p className="text-orange-400 font-medium">لم يُعيَّن رمز الطوارئ</p>
-            <p className="text-slate-400 text-sm">يجب تعيين رمز الطوارئ من الإعدادات قبل استخدام هذه الميزة.</p>
+            <p className="text-muted-foreground text-sm">يجب تعيين رمز الطوارئ من الإعدادات قبل استخدام هذه الميزة.</p>
             <button
               onClick={() => navigate('/settings', { replace: true })}
               className="w-full py-3 rounded-xl bg-orange-500/20 border border-orange-500/40 text-orange-300 text-sm hover:bg-orange-500/30 transition"
@@ -205,7 +205,7 @@ export function EmergencyExitScreen() {
         {!isExhausted && hasPinSetup && (
           <div className="space-y-4">
             <div>
-              <label className="text-slate-400 text-sm mb-3 block flex items-center gap-2">
+              <label className="text-muted-foreground text-sm mb-3 block flex items-center gap-2">
                 <Lock className="w-4 h-4" />
                 أدخل رمز الطوارئ (PIN)
               </label>
@@ -219,18 +219,18 @@ export function EmergencyExitScreen() {
                   setError('');
                 }}
                 placeholder="••••"
-                className="w-full bg-slate-900 border border-slate-800 rounded-2xl px-4 py-4 text-white text-center text-3xl tracking-[0.5em] focus:border-red-500 focus:outline-none transition"
+                className="w-full bg-card border border-border rounded-2xl px-4 py-4 text-foreground text-center text-3xl tracking-[0.5em] focus:border-red-500 focus:outline-none transition"
               />
             </div>
 
             <div>
-              <label className="text-slate-400 text-sm mb-2 block">سبب الخروج (اختياري)</label>
+              <label className="text-muted-foreground text-sm mb-2 block">سبب الخروج (اختياري)</label>
               <textarea
                 value={reason}
                 onChange={(e) => setReason(e.target.value)}
                 placeholder="لماذا تحتاج للخروج؟"
                 rows={3}
-                className="w-full bg-slate-900 border border-slate-800 rounded-2xl px-4 py-3 text-white resize-none focus:border-red-500 focus:outline-none transition text-sm"
+                className="w-full bg-card border border-border rounded-2xl px-4 py-3 text-foreground resize-none focus:border-red-500 focus:outline-none transition text-sm"
               />
             </div>
 
@@ -240,7 +240,7 @@ export function EmergencyExitScreen() {
               </p>
             )}
 
-            <div className="flex items-center gap-2 text-slate-500 text-xs justify-center">
+            <div className="flex items-center gap-2 text-muted-foreground text-xs justify-center">
               <Clock className="w-3.5 h-3.5" />
               ستحصل على 5 دقائق فقط خارج الجلسة
             </div>
@@ -257,7 +257,7 @@ export function EmergencyExitScreen() {
             className={`w-full py-4 rounded-2xl transition flex items-center justify-center gap-2 ${
               pin.length === 4 && !isSubmitting
                 ? 'bg-gradient-to-r from-red-500 to-pink-600 text-white hover:opacity-90'
-                : 'bg-slate-800 text-slate-500 cursor-not-allowed'
+                : 'bg-muted text-muted-foreground cursor-not-allowed'
             }`}
           >
             {isSubmitting ? <Loader2 className="w-5 h-5 animate-spin" /> : null}
@@ -266,7 +266,7 @@ export function EmergencyExitScreen() {
         )}
         <button
           onClick={() => navigate('/active-session', { replace: true })}
-          className="w-full py-4 rounded-2xl bg-slate-900 text-slate-300 hover:bg-slate-800 transition"
+          className="w-full py-4 rounded-2xl bg-card text-foreground hover:bg-muted transition"
         >
           العودة للجلسة
         </button>

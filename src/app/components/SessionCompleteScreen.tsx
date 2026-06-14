@@ -24,7 +24,7 @@ export function SessionCompleteScreen() {
 
   return (
     <div
-      className="min-h-screen bg-slate-950 flex flex-col items-center justify-center px-6"
+      className="min-h-screen bg-background flex flex-col items-center justify-center px-6"
       style={{
         paddingTop: `calc(env(safe-area-inset-top, 0px) + 16px)`,
         paddingBottom: `calc(env(safe-area-inset-bottom, 0px) + 16px)`,
@@ -39,30 +39,30 @@ export function SessionCompleteScreen() {
         </div>
 
         <div className="space-y-4">
-          <h1 className="text-white text-3xl font-bold">أحسنت!</h1>
-          <p className="text-slate-400 text-lg leading-relaxed">
+          <h1 className="text-foreground text-3xl font-bold">أحسنت!</h1>
+          <p className="text-muted-foreground text-lg leading-relaxed">
             لقد أكملت جلسة التركيز بنجاح
           </p>
         </div>
 
-        <div className="bg-slate-900 rounded-2xl p-6 border border-slate-800 space-y-4">
+        <div className="bg-card rounded-2xl p-6 border border-border space-y-4">
           <div className="grid grid-cols-3 gap-4">
             <div className="text-center">
               <Clock className="w-6 h-6 text-blue-400 mx-auto mb-2" />
-              <div className="text-2xl font-bold text-white mb-1">{durationMinutes}</div>
-              <div className="text-slate-400 text-xs">دقيقة</div>
+              <div className="text-2xl font-bold text-foreground mb-1">{durationMinutes}</div>
+              <div className="text-muted-foreground text-xs">دقيقة</div>
             </div>
 
             <div className="text-center">
               <ShieldCheck className="w-6 h-6 text-emerald-400 mx-auto mb-2" />
-              <div className="text-2xl font-bold text-white mb-1">{blockedAttempts}</div>
-              <div className="text-slate-400 text-xs">محاولة حظر</div>
+              <div className="text-2xl font-bold text-foreground mb-1">{blockedAttempts}</div>
+              <div className="text-muted-foreground text-xs">محاولة حظر</div>
             </div>
 
             <div className="text-center">
               <Trophy className="w-6 h-6 text-yellow-400 mx-auto mb-2" />
-              <div className="text-2xl font-bold text-white mb-1">{currentStreak}</div>
-              <div className="text-slate-400 text-xs">أيام متتالية</div>
+              <div className="text-2xl font-bold text-foreground mb-1">{currentStreak}</div>
+              <div className="text-muted-foreground text-xs">أيام متتالية</div>
             </div>
           </div>
         </div>
@@ -83,7 +83,7 @@ export function SessionCompleteScreen() {
 
           <button
             onClick={() => navigate('/home')}
-            className="w-full bg-slate-900 border border-slate-800 text-white py-4 rounded-2xl hover:bg-slate-800 transition"
+            className="w-full bg-card border border-border text-foreground py-4 rounded-2xl hover:bg-muted transition"
           >
             العودة للرئيسية
           </button>

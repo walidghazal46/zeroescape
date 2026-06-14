@@ -54,6 +54,9 @@ const blankForm = (): FormState => ({
   mode: 'study',
   days: [1, 2, 3, 4, 0] as DayOfWeek[], // Mon–Thu + Sun by default
   enabled: true,
+  blockSocial: true,
+  webFilter: true,
+  fullBlock: false,
 });
 
 // ── Main Component ────────────────────────────────────────────────────────────
@@ -87,6 +90,9 @@ export function ScheduleScreen() {
       mode: e.mode,
       days: [...e.days],
       enabled: e.enabled,
+      blockSocial: e.blockSocial,
+      webFilter: e.webFilter,
+      fullBlock: e.fullBlock,
     });
     setShowForm(true);
   };
@@ -150,7 +156,7 @@ export function ScheduleScreen() {
 
   return (
     <div
-      className="min-h-screen bg-slate-950 flex flex-col"
+      className="min-h-screen bg-background flex flex-col"
       dir="rtl"
       style={{
         paddingTop: `calc(env(safe-area-inset-top, 0px) + 16px)`,
@@ -160,14 +166,14 @@ export function ScheduleScreen() {
       {/* ── Header ─────────────────────────────────────────────────────────── */}
       <div className="flex items-center gap-3 px-4 mb-5">
         <button
-          onClick={() => navigate(-1)}
-          className="w-9 h-9 bg-slate-900 border border-slate-800 rounded-xl flex items-center justify-center"
+          onClick={() => navigate('/home')}
+          className="w-9 h-9 bg-card border border-border rounded-xl flex items-center justify-center"
         >
-          <ChevronLeft className="w-5 h-5 text-slate-400 rotate-180" />
+          <ChevronLeft className="w-5 h-5 text-muted-foreground rotate-180" />
         </button>
         <div className="flex-1">
-          <h1 className="text-white font-bold text-lg">الجدولة التلقائية</h1>
-          <p className="text-slate-500 text-xs">جلسات تبدأ وحدها في الأوقات المحددة</p>
+          <h1 className="text-foreground font-bold text-lg">الجدولة التلقائية</h1>
+          <p className="text-muted-foreground text-xs">جلسات تبدأ وحدها في الأوقات المحددة</p>
         </div>
         <button
           onClick={openNew}
@@ -187,8 +193,8 @@ export function ScheduleScreen() {
             </div>
             <div className="flex-1 text-right">
               <p className="text-blue-300 text-xs font-medium">الجلسة القادمة</p>
-              <p className="text-white text-sm font-bold">{next.entry.label || next.entry.mode}</p>
-              <p className="text-slate-400 text-xs">
+              <p className="text-foreground text-sm font-bold">{next.entry.label || next.entry.mode}</p>
+              <p className="text-muted-foreground text-xs">
                 {next.firesAt.toLocaleDateString('ar-EG', { weekday: 'long' })} —{' '}
                 {formatTime(next.entry.startHour, next.entry.startMinute)} •{' '}
                 {formatDuration(next.entry.durationMinutes)}
@@ -200,12 +206,12 @@ export function ScheduleScreen() {
         {/* ── Empty state ─────────────────────────────────────────────────── */}
         {schedules.length === 0 && !showForm && (
           <div className="flex flex-col items-center justify-center py-16 gap-4">
-            <div className="w-16 h-16 bg-slate-900 border border-slate-800 rounded-2xl flex items-center justify-center">
-              <Calendar className="w-8 h-8 text-slate-600" />
+            <div className="w-16 h-16 bg-card border border-border rounded-2xl flex items-center justify-center">
+              <Calendar className="w-8 h-8 text-muted-foreground" />
             </div>
             <div className="text-center">
-              <p className="text-white font-medium">لا توجد جداول بعد</p>
-              <p className="text-slate-500 text-sm mt-1">اضغط + لإنشاء أول جدولة تلقائية</p>
+              <p className="text-foreground font-medium">لا توجد جداول بعد</p>
+              <p className="text-muted-foreground text-sm mt-1">اضغط + لإنشاء أول جدولة تلقائية</p>
             </div>
             <button
               onClick={openNew}
@@ -224,8 +230,8 @@ export function ScheduleScreen() {
           return (
             <div
               key={entry.id}
-              className={`bg-slate-900 border rounded-2xl overflow-hidden transition ${
-                entry.enabled ? 'border-slate-800' : 'border-slate-800/50 opacity-60'
+              className={`bg-card border rounded-2xl overflow-hidden transition ${
+                entry.enabled ? 'border-border' : 'border-border/50 opacity-60'
               }`}
             >
               {/* Main row */}
@@ -237,10 +243,10 @@ export function ScheduleScreen() {
                   <Icon className={`w-4 h-4 ${modeConfig.color}`} />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-white font-medium text-sm truncate">
+                  <p className="text-foreground font-medium text-sm truncate">
                     {entry.label || modeConfig.label}
                   </p>
-                  <p className="text-slate-400 text-xs mt-0.5">
+                  <p className="text-muted-foreground text-xs mt-0.5">
                     {formatTime(entry.startHour, entry.startMinute)} •{' '}
                     {formatDuration(entry.durationMinutes)} •{' '}
                     {entry.days
@@ -257,7 +263,7 @@ export function ScheduleScreen() {
                   {entry.enabled ? (
                     <ToggleRight className="w-7 h-7 text-blue-400" />
                   ) : (
-                    <ToggleLeft className="w-7 h-7 text-slate-600" />
+                    <ToggleLeft className="w-7 h-7 text-muted-foreground" />
                   )}
                 </button>
               </button>
@@ -273,7 +279,7 @@ export function ScheduleScreen() {
                   </button>
                   <button
                     onClick={() => setDeleteConfirmId(null)}
-                    className="flex-1 h-9 rounded-xl bg-slate-800 text-slate-300 text-xs"
+                    className="flex-1 h-9 rounded-xl bg-muted text-foreground text-xs"
                   >
                     إلغاء
                   </button>
@@ -283,8 +289,8 @@ export function ScheduleScreen() {
                   className="w-full px-4 pb-2 flex items-center justify-end gap-1"
                   onClick={(ev) => { ev.stopPropagation(); setDeleteConfirmId(entry.id); }}
                 >
-                  <Trash2 className="w-3 h-3 text-slate-600" />
-                  <span className="text-slate-600 text-xs">حذف</span>
+                  <Trash2 className="w-3 h-3 text-muted-foreground" />
+                  <span className="text-muted-foreground text-xs">حذف</span>
                 </button>
               )}
             </div>
@@ -297,40 +303,40 @@ export function ScheduleScreen() {
         <div className="fixed inset-0 z-50 flex items-end" onClick={() => setShowForm(false)}>
           <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
           <div
-            className="relative w-full bg-slate-900 border-t border-slate-800 rounded-t-3xl px-4 pt-4 pb-8 max-h-[92vh] overflow-y-auto"
+            className="relative w-full bg-card border-t border-border rounded-t-3xl px-4 pt-4 pb-8 max-h-[92vh] overflow-y-auto"
             style={{ paddingBottom: `calc(env(safe-area-inset-bottom, 0px) + 24px)` }}
             onClick={(e) => e.stopPropagation()}
             dir="rtl"
           >
             {/* Drag handle */}
-            <div className="w-10 h-1 bg-slate-700 rounded-full mx-auto mb-4" />
+            <div className="w-10 h-1 bg-muted rounded-full mx-auto mb-4" />
 
-            <h2 className="text-white font-bold text-base mb-4 text-center">
+            <h2 className="text-foreground font-bold text-base mb-4 text-center">
               {editingId ? 'تعديل الجدولة' : 'جدولة جديدة'}
             </h2>
 
             {/* Label */}
             <div className="mb-4">
-              <label className="text-slate-400 text-xs mb-1.5 block">اسم الجدولة (اختياري)</label>
+              <label className="text-muted-foreground text-xs mb-1.5 block">اسم الجدولة (اختياري)</label>
               <input
                 type="text"
                 placeholder="مثال: وقت الدراسة الصباحي"
                 value={form.label}
                 onChange={(e) => setForm((f) => ({ ...f, label: e.target.value }))}
-                className="w-full h-11 bg-slate-800 border border-slate-700 rounded-xl px-3 text-white text-sm placeholder-slate-600 focus:outline-none focus:border-blue-500"
+                className="w-full h-11 bg-muted border border-border rounded-xl px-3 text-foreground text-sm placeholder-muted-foreground focus:outline-none focus:border-blue-500"
               />
             </div>
 
             {/* Time pickers */}
             <div className="mb-4">
-              <label className="text-slate-400 text-xs mb-1.5 block">وقت البدء</label>
+              <label className="text-muted-foreground text-xs mb-1.5 block">وقت البدء</label>
               <div className="flex gap-2">
                 <div className="flex-1">
-                  <label className="text-slate-500 text-xs block mb-1">الساعة</label>
+                  <label className="text-muted-foreground text-xs block mb-1">الساعة</label>
                   <select
                     value={form.startHour}
                     onChange={(e) => setForm((f) => ({ ...f, startHour: +e.target.value }))}
-                    className="w-full h-11 bg-slate-800 border border-slate-700 rounded-xl px-3 text-white text-sm focus:outline-none focus:border-blue-500"
+                    className="w-full h-11 bg-muted border border-border rounded-xl px-3 text-foreground text-sm focus:outline-none focus:border-blue-500"
                   >
                     {Array.from({ length: 24 }, (_, i) => (
                       <option key={i} value={i}>
@@ -340,11 +346,11 @@ export function ScheduleScreen() {
                   </select>
                 </div>
                 <div className="flex-1">
-                  <label className="text-slate-500 text-xs block mb-1">الدقيقة</label>
+                  <label className="text-muted-foreground text-xs block mb-1">الدقيقة</label>
                   <select
                     value={form.startMinute}
                     onChange={(e) => setForm((f) => ({ ...f, startMinute: +e.target.value }))}
-                    className="w-full h-11 bg-slate-800 border border-slate-700 rounded-xl px-3 text-white text-sm focus:outline-none focus:border-blue-500"
+                    className="w-full h-11 bg-muted border border-border rounded-xl px-3 text-foreground text-sm focus:outline-none focus:border-blue-500"
                   >
                     {[0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55].map((m) => (
                       <option key={m} value={m}>{String(m).padStart(2, '0')}</option>
@@ -356,7 +362,7 @@ export function ScheduleScreen() {
 
             {/* Duration */}
             <div className="mb-4">
-              <label className="text-slate-400 text-xs mb-1.5 block">مدة الجلسة</label>
+              <label className="text-muted-foreground text-xs mb-1.5 block">مدة الجلسة</label>
               <div className="flex flex-wrap gap-2">
                 {DURATION_PRESETS.map((d) => (
                   <button
@@ -365,7 +371,7 @@ export function ScheduleScreen() {
                     className={`h-9 px-3 rounded-xl text-sm font-medium transition ${
                       form.durationMinutes === d
                         ? 'bg-blue-600 text-white'
-                        : 'bg-slate-800 text-slate-400 border border-slate-700'
+                        : 'bg-muted text-muted-foreground border border-border'
                     }`}
                   >
                     {formatDuration(d)}
@@ -376,7 +382,7 @@ export function ScheduleScreen() {
 
             {/* Mode */}
             <div className="mb-4">
-              <label className="text-slate-400 text-xs mb-1.5 block">النمط</label>
+              <label className="text-muted-foreground text-xs mb-1.5 block">النمط</label>
               <div className="grid grid-cols-5 gap-2">
                 {MODES.map(({ id, label, Icon: ModeIcon, color, bg }) => (
                   <button
@@ -384,14 +390,14 @@ export function ScheduleScreen() {
                     onClick={() => setForm((f) => ({ ...f, mode: id }))}
                     className={`flex flex-col items-center gap-1 py-2 rounded-xl border transition ${
                       form.mode === id
-                        ? 'bg-slate-700 border-blue-500'
-                        : 'bg-slate-800 border-slate-700'
+                        ? 'bg-accent border-blue-500'
+                        : 'bg-muted border-border'
                     }`}
                   >
                     <div className={`w-7 h-7 ${bg} rounded-lg flex items-center justify-center`}>
                       <ModeIcon className={`w-3.5 h-3.5 ${color}`} />
                     </div>
-                    <span className="text-slate-300 text-xs leading-tight">{label}</span>
+                    <span className="text-foreground text-xs leading-tight">{label}</span>
                   </button>
                 ))}
               </div>
@@ -399,7 +405,7 @@ export function ScheduleScreen() {
 
             {/* Days */}
             <div className="mb-6">
-              <label className="text-slate-400 text-xs mb-1.5 block">
+              <label className="text-muted-foreground text-xs mb-1.5 block">
                 الأيام{' '}
                 {form.days.length === 0 && (
                   <span className="text-red-400">— اختر يوماً واحداً على الأقل</span>
@@ -413,12 +419,76 @@ export function ScheduleScreen() {
                     className={`w-10 h-10 rounded-xl text-sm font-medium transition ${
                       form.days.includes(day)
                         ? 'bg-blue-600 text-white'
-                        : 'bg-slate-800 text-slate-400 border border-slate-700'
+                        : 'bg-muted text-muted-foreground border border-border'
                     }`}
                   >
                     {short}
                   </button>
                 ))}
+              </div>
+            </div>
+
+            {/* Blocking method */}
+            <div className="mb-6">
+              <label className="text-muted-foreground text-xs mb-1.5 block">طريقة الحظر</label>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--sp-2)' }}>
+                {[
+                  {
+                    key: 'blockSocial' as const,
+                    on: form.blockSocial,
+                    color: 'bg-red-500',
+                    activeBg: 'bg-red-500/10 border-red-500/30',
+                    title: 'حظر تطبيقات التواصل',
+                    sub: 'انستقرام، تيك توك، سناب...',
+                  },
+                  {
+                    key: 'webFilter' as const,
+                    on: form.webFilter,
+                    color: 'bg-emerald-500',
+                    activeBg: 'bg-emerald-500/10 border-emerald-500/30',
+                    title: 'تصفية الويب',
+                    sub: 'حظر المحتوى الضار',
+                  },
+                  {
+                    key: 'fullBlock' as const,
+                    on: form.fullBlock,
+                    color: 'bg-amber-500',
+                    activeBg: 'bg-amber-500/10 border-amber-500/30',
+                    title: 'حظر كامل — وضع الديتوكس',
+                    sub: 'يفعّل كل وسائل الحظر معاً',
+                  },
+                ].map(({ key, on, color, activeBg, title, sub }) => {
+                  const disabled = key !== 'fullBlock' && form.fullBlock;
+                  return (
+                    <button
+                      key={key}
+                      disabled={disabled}
+                      onClick={() =>
+                        setForm((f) =>
+                          key === 'fullBlock'
+                            ? {
+                                ...f,
+                                fullBlock: !f.fullBlock,
+                                ...(!f.fullBlock ? { blockSocial: true, webFilter: true } : {}),
+                              }
+                            : { ...f, [key]: !f[key] }
+                        )
+                      }
+                      className={`w-full rounded-xl border flex items-center justify-between transition ${
+                        on ? activeBg : 'bg-muted border-border'
+                      } ${disabled ? 'opacity-50' : ''}`}
+                      style={{ padding: 'var(--sp-4)' }}
+                    >
+                      <div className={`w-12 h-6 rounded-full relative transition flex-shrink-0 ${on ? color : 'bg-muted-foreground/30'}`}>
+                        <div className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-all ${on ? 'left-1' : 'right-1'}`} />
+                      </div>
+                      <div className="flex-1 text-right mr-3">
+                        <h3 className="text-sm text-foreground font-medium">{title}</h3>
+                        <p className="text-xs text-muted-foreground mt-0.5">{sub}</p>
+                      </div>
+                    </button>
+                  );
+                })}
               </div>
             </div>
 
@@ -433,7 +503,7 @@ export function ScheduleScreen() {
               </button>
               <button
                 onClick={() => setShowForm(false)}
-                className="flex-1 h-12 rounded-2xl bg-slate-800 border border-slate-700 text-slate-300 font-medium text-sm"
+                className="flex-1 h-12 rounded-2xl bg-muted border border-border text-foreground font-medium text-sm"
               >
                 إلغاء
               </button>

@@ -25,7 +25,7 @@ export function BlockedAppsScreen() {
 
   return (
     <div
-      className="min-h-screen bg-slate-950 flex flex-col px-4 overflow-y-auto hide-scrollbar"
+      className="min-h-screen bg-background flex flex-col px-4 overflow-y-auto hide-scrollbar"
       style={{
         paddingTop: `calc(env(safe-area-inset-top, 0px) + 20px)`,
         paddingBottom: `calc(env(safe-area-inset-bottom, 0px) + 24px)`,
@@ -34,13 +34,13 @@ export function BlockedAppsScreen() {
       <div className="flex items-center gap-3 mb-6">
         <button
           onClick={() => navigate('/home')}
-          className="w-9 h-9 flex items-center justify-center text-slate-400 hover:text-white transition"
+          className="w-9 h-9 flex items-center justify-center text-muted-foreground hover:text-foreground transition"
         >
           <ChevronRight className="w-6 h-6" />
         </button>
         <div className="flex-1">
-          <h1 className="text-white text-2xl font-bold">التطبيقات المحظورة</h1>
-          <p className="text-slate-400 text-sm">{blockedCount} تطبيق محظور</p>
+          <h1 className="text-foreground text-2xl font-bold">التطبيقات المحظورة</h1>
+          <p className="text-muted-foreground text-sm">{blockedCount} تطبيق محظور</p>
         </div>
       </div>
 
@@ -60,19 +60,19 @@ export function BlockedAppsScreen() {
             <button
               key={app.id}
               onClick={() => toggleApp(app.id)}
-              className="w-full bg-slate-900 rounded-2xl p-5 flex items-center gap-4 hover:bg-slate-800 transition border border-slate-800"
+              className="w-full bg-card rounded-2xl p-5 flex items-center gap-4 hover:bg-muted transition border border-border"
             >
-              <div className={`p-3 rounded-xl ${isBlocked ? 'bg-red-500/20' : 'bg-slate-800'}`}>
+              <div className={`p-3 rounded-xl ${isBlocked ? 'bg-red-500/20' : 'bg-muted'}`}>
                 <Icon className={`w-6 h-6 ${isBlocked ? 'text-red-400' : app.color}`} />
               </div>
 
               <div className="flex-1 text-right">
-                <h3 className="text-white font-medium">{app.name}</h3>
-                <p className="text-slate-400 text-sm">{isBlocked ? 'محظور' : 'غير محظور'}</p>
+                <h3 className="text-foreground font-medium">{app.name}</h3>
+                <p className="text-muted-foreground text-sm">{isBlocked ? 'محظور' : 'غير محظور'}</p>
               </div>
 
               <div className={`w-12 h-7 rounded-full transition relative ${
-                isBlocked ? 'bg-red-500' : 'bg-slate-700'
+                isBlocked ? 'bg-red-500' : 'bg-muted'
               }`}>
                 <div className={`absolute top-1 w-5 h-5 bg-white rounded-full transition-all ${
                   isBlocked ? 'left-1' : 'right-1'

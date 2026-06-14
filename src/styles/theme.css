@@ -1,81 +1,95 @@
 @custom-variant dark (&:is(.dark *));
 
+/* ═══════════════════════════════════════════════════════════════
+   ZeroEscape Design System v3 — "Turquoise × Cream" — Light Mode
+   Arabic RTL Mobile-First Focus & Parental Control App
+   ═══════════════════════════════════════════════════════════════ */
+
 :root {
   --font-size: 16px;
-  --background: #ffffff;
-  --foreground: oklch(0.145 0 0);
-  --card: #ffffff;
-  --card-foreground: oklch(0.145 0 0);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: #030213;
-  --primary-foreground: oklch(1 0 0);
-  --secondary: oklch(0.95 0.0058 264.53);
-  --secondary-foreground: #030213;
-  --muted: #ececf0;
-  --muted-foreground: #717182;
-  --accent: #e9ebef;
-  --accent-foreground: #030213;
-  --destructive: #d4183d;
-  --destructive-foreground: #ffffff;
-  --border: rgba(0, 0, 0, 0.1);
-  --input: transparent;
-  --input-background: #f3f3f5;
-  --switch-background: #cbced4;
-  --font-weight-medium: 500;
-  --font-weight-normal: 400;
-  --ring: oklch(0.708 0 0);
-  --chart-1: oklch(0.646 0.222 41.116);
-  --chart-2: oklch(0.6 0.118 184.704);
-  --chart-3: oklch(0.398 0.07 227.392);
-  --chart-4: oklch(0.828 0.189 84.429);
-  --chart-5: oklch(0.769 0.188 70.08);
-  --radius: 0.625rem;
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: #030213;
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.97 0 0);
-  --sidebar-accent-foreground: oklch(0.205 0 0);
-  --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: oklch(0.708 0 0);
-}
 
-.dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.145 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.145 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.985 0 0);
-  --primary-foreground: oklch(0.205 0 0);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
-  --destructive: oklch(0.396 0.141 25.723);
-  --destructive-foreground: oklch(0.637 0.237 25.331);
-  --border: oklch(0.269 0 0);
-  --input: oklch(0.269 0 0);
-  --ring: oklch(0.439 0 0);
-  --font-weight-medium: 500;
+  /* ── Core Backgrounds (warm cream) ── */
+  --background: #f6f5ef;
+  --card: #ffffff;
+  --popover: #ffffff;
+  --sidebar: #eaf6f1;
+
+  /* ── Text ── */
+  --foreground: #1c2e2b;
+  --card-foreground: #1c2e2b;
+  --popover-foreground: #1c2e2b;
+  --sidebar-foreground: #1c2e2b;
+
+  /* ── Primary: Turquoise (CTAs, highlights, brand accent) ── */
+  --primary: #15b8a6;
+  --primary-foreground: #ffffff;
+
+  /* ── Secondary: Soft Green (brand color) ── */
+  --secondary: #4caf7d;
+  --secondary-foreground: #ffffff;
+
+  /* ── Muted ── */
+  --muted: #eaf6f1;
+  --muted-foreground: #6b8079;
+
+  /* ── Accent ── */
+  --accent: #e3f2ea;
+  --accent-foreground: #1c2e2b;
+
+  /* ── Destructive ── */
+  --destructive: #e0524a;
+  --destructive-foreground: #ffffff;
+
+  /* ── Borders & Inputs ── */
+  --border: rgba(21, 184, 166, 0.16);
+  --input: rgba(21, 184, 166, 0.08);
+  --input-background: #eaf6f1;
+  --switch-background: #bfe6dc;
+
+  /* ── Ring ── */
+  --ring: rgba(21, 184, 166, 0.5);
+
+  /* ── Font weights ── */
+  --font-weight-medium: 600;
   --font-weight-normal: 400;
-  --chart-1: oklch(0.488 0.243 264.376);
-  --chart-2: oklch(0.696 0.17 162.48);
-  --chart-3: oklch(0.769 0.188 70.08);
-  --chart-4: oklch(0.627 0.265 303.9);
-  --chart-5: oklch(0.645 0.246 16.439);
-  --sidebar: oklch(0.205 0 0);
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.269 0 0);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
-  --sidebar-border: oklch(0.269 0 0);
-  --sidebar-ring: oklch(0.439 0 0);
+
+  /* ── Border radius — larger, more organic ── */
+  --radius: 1rem;
+
+  /* ── Charts ── */
+  --chart-1: #15b8a6;
+  --chart-2: #4caf7d;
+  --chart-3: #f4a259;
+  --chart-4: #6fb3e0;
+  --chart-5: #a3d9c9;
+
+  /* ── Sidebar ── */
+  --sidebar-primary: #15b8a6;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #eaf6f1;
+  --sidebar-accent-foreground: #1c2e2b;
+  --sidebar-border: rgba(21, 184, 166, 0.16);
+  --sidebar-ring: rgba(21, 184, 166, 0.5);
+
+  /* ── Extended brand tokens (used directly in components) ── */
+  --ze-gold: #15b8a6;
+  --ze-gold-dim: rgba(21, 184, 166, 0.15);
+  --ze-gold-glow: rgba(21, 184, 166, 0.25);
+  --ze-violet: #4caf7d;
+  --ze-violet-dim: rgba(76, 175, 125, 0.12);
+  --ze-violet-glow: rgba(76, 175, 125, 0.22);
+  --ze-emerald: #10d98c;
+  --ze-emerald-dim: rgba(16, 217, 140, 0.12);
+  --ze-amber: #f4a259;
+  --ze-amber-dim: rgba(244, 162, 89, 0.12);
+  --ze-red: #e0524a;
+  --ze-red-dim: rgba(224, 82, 74, 0.12);
+  --ze-sky: #6fb3e0;
+  --ze-sky-dim: rgba(111, 179, 224, 0.12);
+  --ze-muted-text: #6b8079;
+  --ze-border: rgba(21, 184, 166, 0.16);
+  --ze-card: #ffffff;
+  --ze-card-hover: #f0faf6;
 }
 
 @theme inline {
@@ -108,7 +122,7 @@
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) + 4px);
+  --radius-xl: calc(var(--radius) + 6px);
   --color-sidebar: var(--sidebar);
   --color-sidebar-foreground: var(--sidebar-foreground);
   --color-sidebar-primary: var(--sidebar-primary);
@@ -128,50 +142,46 @@
     @apply bg-background text-foreground;
   }
 
-  /**
-  * Default typography styles for HTML elements (h1-h4, p, label, button, input).
-  * These are in @layer base, so Tailwind utility classes (like text-sm, text-lg) automatically override them.
-  */
-
   html {
     font-size: var(--font-size);
-    font-family: 'Cairo', sans-serif;
+    font-family: 'Cairo', 'Tajawal', sans-serif;
     direction: rtl;
   }
 
   h1 {
     font-size: var(--text-2xl);
-    font-weight: var(--font-weight-medium);
-    line-height: 1.5;
+    font-weight: 700;
+    line-height: 1.4;
+    letter-spacing: -0.01em;
   }
 
   h2 {
     font-size: var(--text-xl);
-    font-weight: var(--font-weight-medium);
-    line-height: 1.5;
+    font-weight: 700;
+    line-height: 1.4;
   }
 
   h3 {
     font-size: var(--text-lg);
-    font-weight: var(--font-weight-medium);
+    font-weight: 600;
     line-height: 1.5;
   }
 
   h4 {
     font-size: var(--text-base);
-    font-weight: var(--font-weight-medium);
+    font-weight: 600;
     line-height: 1.5;
   }
 
   label {
     font-size: var(--text-base);
-    font-weight: var(--font-weight-medium);
+    font-weight: 500;
     line-height: 1.5;
   }
 
   button {
     font-size: var(--text-base);
-    font-weight: var(--font-weight-medium);
+    font-weight: 600;
     line-height: 1.5;
   }
 

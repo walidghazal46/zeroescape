@@ -59,7 +59,7 @@ export function ScreenContainer({
   // On wide desktop browsers, use full width to avoid split-looking layout.
   if (isTablet && width <= 1024 && !noPadX) {
     return (
-      <div style={containerStyle} className={`bg-slate-950 ${className}`}>
+      <div style={containerStyle} className={`bg-background ${className}`}>
         <div
           style={{
             width: '100%',
@@ -77,7 +77,7 @@ export function ScreenContainer({
   }
 
   return (
-    <div style={containerStyle} className={`bg-slate-950 ${className}`}>
+    <div style={containerStyle} className={`bg-background ${className}`}>
       {children}
     </div>
   );

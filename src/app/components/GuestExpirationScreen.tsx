@@ -35,7 +35,7 @@ export function GuestExpirationScreen() {
   const seconds = Math.floor((timeLeft % (1000 * 60)) / 1000);
 
   return (
-    <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center p-6">
+    <div className="min-h-screen bg-background flex flex-col items-center justify-center p-6">
       <div className="w-full max-w-md space-y-8">
         {/* Time Left */}
         <div className="text-center">
@@ -48,21 +48,21 @@ export function GuestExpirationScreen() {
             </div>
           </div>
 
-          <h1 className="text-white text-3xl font-bold mb-2">
+          <h1 className="text-foreground text-3xl font-bold mb-2">
             {lang === 'ar' ? 'الوقت المتبقي' : 'Time Left'}
           </h1>
-          <p className="text-slate-400">
+          <p className="text-muted-foreground">
             {lang === 'ar' ? 'انتهاء فترة الاستخدام المجاني' : 'Free trial ending'}
           </p>
         </div>
 
         {/* Timer Display */}
-        <div className="bg-slate-900 rounded-3xl p-8 border border-slate-800">
+        <div className="bg-card rounded-3xl p-8 border border-border">
           <div className="text-center">
             <div className="text-6xl font-bold text-transparent bg-gradient-to-r from-yellow-400 to-orange-500 bg-clip-text mb-2">
               {String(hours).padStart(2, '0')}:{String(minutes).padStart(2, '0')}:{String(seconds).padStart(2, '0')}
             </div>
-            <p className="text-slate-400">
+            <p className="text-muted-foreground">
               {lang === 'ar' ? 'ساعة : دقيقة : ثانية' : 'hours : minutes : seconds'}
             </p>
           </div>
@@ -73,10 +73,10 @@ export function GuestExpirationScreen() {
           <div className="flex items-start gap-3">
             <Lock className="w-5 h-5 text-blue-400 flex-shrink-0 mt-1" />
             <div className="text-right">
-              <h3 className="text-white font-medium mb-1">
+              <h3 className="text-foreground font-medium mb-1">
                 {lang === 'ar' ? 'استمتع بجميع الميزات' : 'Enjoy All Features'}
               </h3>
-              <p className="text-slate-400 text-sm">
+              <p className="text-muted-foreground text-sm">
                 {lang === 'ar'
                   ? 'لديك وصول كامل لجميع أدوات التطبيق خلال هذه الفترة'
                   : 'Full access to all features during your trial'}
@@ -99,7 +99,7 @@ export function GuestExpirationScreen() {
           <button
             onClick={() => setLanguage('ar')}
             className={`px-4 py-2 rounded-xl text-sm font-medium transition ${
-              lang === 'ar' ? 'bg-blue-500 text-white' : 'bg-slate-900 text-slate-400'
+              lang === 'ar' ? 'bg-blue-500 text-white' : 'bg-card text-muted-foreground'
             }`}
           >
             العربية
@@ -107,7 +107,7 @@ export function GuestExpirationScreen() {
           <button
             onClick={() => setLanguage('en')}
             className={`px-4 py-2 rounded-xl text-sm font-medium transition ${
-              lang === 'en' ? 'bg-blue-500 text-white' : 'bg-slate-900 text-slate-400'
+              lang === 'en' ? 'bg-blue-500 text-white' : 'bg-card text-muted-foreground'
             }`}
           >
             English

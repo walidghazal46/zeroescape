@@ -80,18 +80,18 @@ export function AdminPinScreen() {
   return (
     <div
       dir="rtl"
-      className="min-h-screen bg-slate-950 flex flex-col items-center"
+      className="min-h-screen bg-background flex flex-col items-center"
       style={{ paddingTop: 'env(safe-area-inset-top, 24px)' }}
     >
       {/* Header */}
       <div className="w-full flex items-center gap-3 px-5 py-4">
         <button
           onClick={() => navigate('/settings')}
-          className="w-9 h-9 flex items-center justify-center text-slate-400 hover:text-white transition"
+          className="w-9 h-9 flex items-center justify-center text-muted-foreground hover:text-foreground transition"
         >
           <ChevronRight className="w-5 h-5" />
         </button>
-        <h1 className="text-white text-lg font-bold flex-1 text-center">لوحة الأدمن</h1>
+        <h1 className="text-foreground text-lg font-bold flex-1 text-center">لوحة الأدمن</h1>
         <div className="w-9" />
       </div>
 
@@ -102,8 +102,8 @@ export function AdminPinScreen() {
         </div>
 
         <div className="text-center space-y-1">
-          <h2 className="text-white text-xl font-bold">أدخل رمز الأدمن</h2>
-          <p className="text-slate-500 text-sm">6 أرقام للدخول إلى لوحة التحكم</p>
+          <h2 className="text-foreground text-xl font-bold">أدخل رمز الأدمن</h2>
+          <p className="text-muted-foreground text-sm">6 أرقام للدخول إلى لوحة التحكم</p>
         </div>
 
         {/* PIN dots */}
@@ -112,7 +112,7 @@ export function AdminPinScreen() {
             <div
               key={i}
               className={`w-4 h-4 rounded-full transition-all duration-200 ${
-                filled ? 'bg-violet-500 scale-110' : 'bg-slate-700'
+                filled ? 'bg-violet-500 scale-110' : 'bg-muted'
               }`}
             />
           ))}
@@ -135,7 +135,7 @@ export function AdminPinScreen() {
                 <button
                   key={i}
                   onPointerDown={() => handleDelete()}
-                  className="h-16 rounded-2xl bg-slate-800 flex items-center justify-center text-white hover:bg-slate-700 active:scale-95 transition"
+                  className="h-16 rounded-2xl bg-muted flex items-center justify-center text-foreground hover:bg-accent active:scale-95 transition"
                 >
                   ⌫
                 </button>
@@ -146,7 +146,7 @@ export function AdminPinScreen() {
                 key={i}
                 onPointerDown={() => handleDigit(key)}
                 disabled={attempts >= 3}
-                className="h-16 rounded-2xl bg-slate-900 border border-slate-800 text-white text-xl font-semibold hover:bg-slate-800 active:scale-95 transition disabled:opacity-40"
+                className="h-16 rounded-2xl bg-card border border-border text-foreground text-xl font-semibold hover:bg-muted active:scale-95 transition disabled:opacity-40"
               >
                 {key}
               </button>

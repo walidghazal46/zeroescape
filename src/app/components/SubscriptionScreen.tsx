@@ -100,7 +100,7 @@ export function SubscriptionScreen() {
   return (
     <div
       dir={ar ? 'rtl' : 'ltr'}
-      className="min-h-screen bg-slate-950 flex flex-col overflow-y-auto hide-scrollbar"
+      className="min-h-screen bg-background flex flex-col overflow-y-auto hide-scrollbar"
       style={{ paddingTop: 'env(safe-area-inset-top, 16px)', paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 32px)' }}
     >
       {/* Back / header */}
@@ -110,16 +110,16 @@ export function SubscriptionScreen() {
             if (step !== 'plans') { setStep('plans'); return; }
             navigate(-1);
           }}
-          className="w-9 h-9 flex items-center justify-center text-slate-400 hover:text-white transition rounded-xl"
+          className="w-9 h-9 flex items-center justify-center text-muted-foreground hover:text-foreground transition rounded-xl"
         >
           <ChevronRight className={`w-5 h-5 ${ar ? '' : 'rotate-180'}`} />
         </button>
-        <h1 className="text-white text-lg font-bold flex-1 text-center">
+        <h1 className="text-foreground text-lg font-bold flex-1 text-center">
           {ar ? 'الاشتراك' : 'Subscription'}
         </h1>
         <button
           onClick={() => navigate('/settings')}
-          className="w-9 h-9 flex items-center justify-center text-slate-400 hover:text-white transition rounded-xl"
+          className="w-9 h-9 flex items-center justify-center text-muted-foreground hover:text-foreground transition rounded-xl"
           aria-label={ar ? 'الإعدادات' : 'Settings'}
         >
           <Settings className="w-5 h-5" />
@@ -134,10 +134,10 @@ export function SubscriptionScreen() {
             <div className="inline-flex items-center justify-center w-16 h-16 rounded-[20px] bg-gradient-to-br from-blue-500 to-violet-600 shadow-lg shadow-blue-500/30 mb-2">
               <Crown className="w-8 h-8 text-white" />
             </div>
-            <h2 className="text-white text-2xl font-bold">
+            <h2 className="text-foreground text-2xl font-bold">
               {ar ? 'احصل على الوصول الكامل' : 'Get Full Access'}
             </h2>
-            <p className="text-slate-400 text-sm">
+            <p className="text-muted-foreground text-sm">
               {status === 'expired'
                 ? (ar ? 'انتهت فترتك المجانية — اشترك الآن للاستمرار' : 'Your free trial ended — subscribe to continue')
                 : (ar ? `تبقى لك ${daysLeft} ${daysLeft === 1 ? 'يوم' : 'أيام'} من التجربة` : `${daysLeft} trial day${daysLeft !== 1 ? 's' : ''} remaining`)}
@@ -145,18 +145,18 @@ export function SubscriptionScreen() {
           </div>
 
           {/* Features quick list */}
-          <div className="bg-slate-900/60 border border-slate-800 rounded-2xl p-4 space-y-2">
+          <div className="bg-card border border-border rounded-2xl p-4 space-y-2">
             {planFeatures.map(f => (
               <div key={f} className="flex items-center gap-2">
                 <Check className="w-4 h-4 text-emerald-400 flex-shrink-0" />
-                <span className="text-slate-300 text-sm">{f}</span>
+                <span className="text-foreground text-sm">{f}</span>
               </div>
             ))}
           </div>
 
           {/* Plan cards */}
           <div className="space-y-3">
-            <p className="text-slate-500 text-xs px-1">{ar ? 'اختر الباقة المناسبة' : 'Choose your plan'}</p>
+            <p className="text-muted-foreground text-xs px-1">{ar ? 'اختر الباقة المناسبة' : 'Choose your plan'}</p>
             {SUBSCRIPTION_PLANS.map(plan => {
               const isSelected = selectedPlan === plan.id;
               const monthly = (plan.price / (plan.durationDays / 30)).toFixed(2);
@@ -167,12 +167,12 @@ export function SubscriptionScreen() {
                   className={`w-full rounded-2xl border p-4 text-right transition ${
                     isSelected
                       ? 'border-blue-500 bg-blue-500/10'
-                      : 'border-slate-800 bg-slate-900 hover:border-slate-700'
+                      : 'border-border bg-card hover:border-border'
                   }`}
                 >
                   <div className="flex items-center justify-between gap-3">
                     <div className="flex items-center gap-2">
-                      <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 ${isSelected ? 'border-blue-400 bg-blue-500' : 'border-slate-600'}`}>
+                      <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 ${isSelected ? 'border-blue-400 bg-blue-500' : 'border-border'}`}>
                         {isSelected && <div className="w-2 h-2 bg-white rounded-full" />}
                       </div>
                       {plan.badgeAr && (
@@ -182,14 +182,14 @@ export function SubscriptionScreen() {
                       )}
                     </div>
                     <div className="flex-1">
-                      <p className="text-white font-semibold text-sm">{ar ? plan.nameAr : plan.nameEn}</p>
-                      <p className="text-slate-500 text-xs mt-0.5">
+                      <p className="text-foreground font-semibold text-sm">{ar ? plan.nameAr : plan.nameEn}</p>
+                      <p className="text-muted-foreground text-xs mt-0.5">
                         {ar ? `≈ $${monthly} / شهر` : `≈ $${monthly} / month`}
                       </p>
                     </div>
                     <div className="text-right">
-                      <span className="text-white font-bold text-lg">${plan.price}</span>
-                      <span className="text-slate-500 text-xs block">USD</span>
+                      <span className="text-foreground font-bold text-lg">${plan.price}</span>
+                      <span className="text-muted-foreground text-xs block">USD</span>
                     </div>
                   </div>
                 </button>
@@ -216,9 +216,9 @@ export function SubscriptionScreen() {
             </button>
 
             <div className="flex items-center gap-3">
-              <div className="flex-1 h-px bg-slate-800" />
-              <span className="text-slate-600 text-xs">{ar ? 'أو' : 'or'}</span>
-              <div className="flex-1 h-px bg-slate-800" />
+              <div className="flex-1 h-px bg-border" />
+              <span className="text-muted-foreground text-xs">{ar ? 'أو' : 'or'}</span>
+              <div className="flex-1 h-px bg-border" />
             </div>
 
             {/* Manual payment secondary */}
@@ -239,7 +239,7 @@ export function SubscriptionScreen() {
               <p className="text-amber-400 text-sm font-semibold">
                 {ar ? '⏳ طلبك قيد المراجعة' : '⏳ Your order is under review'}
               </p>
-              <p className="text-slate-500 text-xs mt-1">#{pendingOrder.orderId}</p>
+              <p className="text-muted-foreground text-xs mt-1">#{pendingOrder.orderId}</p>
             </button>
           )}
 
@@ -251,7 +251,7 @@ export function SubscriptionScreen() {
           {daysLeft > 0 && (
             <button
               onClick={() => navigate('/home')}
-              className="w-full h-11 rounded-2xl border border-slate-700 bg-slate-900/60 text-slate-400 text-sm hover:border-slate-600 hover:text-slate-300 transition flex items-center justify-center gap-2"
+              className="w-full h-11 rounded-2xl border border-border bg-card text-muted-foreground text-sm hover:border-border hover:text-foreground transition flex items-center justify-center gap-2"
             >
               <Clock className="w-4 h-4 text-sky-400" />
               {ar
@@ -266,8 +266,8 @@ export function SubscriptionScreen() {
       {step === 'manual_form' && (
         <div className="px-5 space-y-5">
           <div className="text-center space-y-1 pt-2">
-            <h2 className="text-white text-xl font-bold">{ar ? 'الدفع اليدوي' : 'Manual Payment'}</h2>
-            <p className="text-slate-400 text-sm">
+            <h2 className="text-foreground text-xl font-bold">{ar ? 'الدفع اليدوي' : 'Manual Payment'}</h2>
+            <p className="text-muted-foreground text-sm">
               {ar ? 'أرسل الدفع ثم أرسل إشعارًا للأدمن' : 'Send payment then notify the admin'}
             </p>
           </div>
@@ -276,14 +276,14 @@ export function SubscriptionScreen() {
           {(() => {
             const plan = SUBSCRIPTION_PLANS.find(p => p.id === selectedPlan)!;
             return (
-              <div className="bg-slate-900 border border-blue-500/30 rounded-2xl p-4 flex items-center justify-between">
+              <div className="bg-card border border-blue-500/30 rounded-2xl p-4 flex items-center justify-between">
                 <div>
-                  <p className="text-slate-500 text-xs">{ar ? 'الباقة المختارة' : 'Selected Plan'}</p>
-                  <p className="text-white font-bold">{ar ? plan.nameAr : plan.nameEn}</p>
+                  <p className="text-muted-foreground text-xs">{ar ? 'الباقة المختارة' : 'Selected Plan'}</p>
+                  <p className="text-foreground font-bold">{ar ? plan.nameAr : plan.nameEn}</p>
                 </div>
                 <div className="text-right">
-                  <p className="text-white font-bold text-xl">${plan.price}</p>
-                  <p className="text-slate-500 text-xs">USD</p>
+                  <p className="text-foreground font-bold text-xl">${plan.price}</p>
+                  <p className="text-muted-foreground text-xs">USD</p>
                 </div>
               </div>
             );
@@ -291,17 +291,17 @@ export function SubscriptionScreen() {
 
           {/* Payment method */}
           <div className="space-y-2">
-            <p className="text-slate-500 text-xs px-1">{ar ? 'طريقة الدفع' : 'Payment Method'}</p>
+            <p className="text-muted-foreground text-xs px-1">{ar ? 'طريقة الدفع' : 'Payment Method'}</p>
             {(['instapay', 'cash'] as const).map(method => (
               <button
                 key={method}
                 onClick={() => setPaymentMethod(method)}
-                className={`w-full rounded-xl border p-3.5 flex items-center gap-3 transition ${paymentMethod === method ? 'border-blue-500 bg-blue-500/10' : 'border-slate-800 bg-slate-900 hover:border-slate-700'}`}
+                className={`w-full rounded-xl border p-3.5 flex items-center gap-3 transition ${paymentMethod === method ? 'border-blue-500 bg-blue-500/10' : 'border-border bg-card hover:border-border'}`}
               >
-                <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 ${paymentMethod === method ? 'border-blue-400 bg-blue-500' : 'border-slate-600'}`}>
+                <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 ${paymentMethod === method ? 'border-blue-400 bg-blue-500' : 'border-border'}`}>
                   {paymentMethod === method && <div className="w-2 h-2 bg-white rounded-full" />}
                 </div>
-                <span className="text-white text-sm font-medium">
+                <span className="text-foreground text-sm font-medium">
                   {method === 'instapay' ? 'InstaPay' : (ar ? 'كاش / حوالة' : 'Cash / Transfer')}
                 </span>
               </button>
@@ -331,20 +331,20 @@ export function SubscriptionScreen() {
               <div className="inline-flex items-center justify-center w-14 h-14 rounded-full bg-emerald-500/20 mb-2">
                 <Check className="w-7 h-7 text-emerald-400" />
               </div>
-              <h2 className="text-white text-xl font-bold">{ar ? 'تم إنشاء طلبك' : 'Order Created'}</h2>
-              <p className="text-slate-400 text-sm">{ar ? 'اتبع التعليمات التالية لإتمام الدفع' : 'Follow the instructions below to complete payment'}</p>
+              <h2 className="text-foreground text-xl font-bold">{ar ? 'تم إنشاء طلبك' : 'Order Created'}</h2>
+              <p className="text-muted-foreground text-sm">{ar ? 'اتبع التعليمات التالية لإتمام الدفع' : 'Follow the instructions below to complete payment'}</p>
             </div>
 
             {/* Order ID */}
-            <div className="bg-slate-900 border border-slate-700 rounded-2xl p-4">
-              <p className="text-slate-500 text-xs mb-2">{ar ? 'رقم الطلب' : 'Order ID'}</p>
+            <div className="bg-card border border-border rounded-2xl p-4">
+              <p className="text-muted-foreground text-xs mb-2">{ar ? 'رقم الطلب' : 'Order ID'}</p>
               <div className="flex items-center gap-2">
-                <span className="text-white font-mono font-bold text-sm flex-1">{createdOrder.orderId}</span>
+                <span className="text-foreground font-mono font-bold text-sm flex-1">{createdOrder.orderId}</span>
                 <button
                   onClick={() => copyOrderId(createdOrder.orderId)}
-                  className="w-8 h-8 flex items-center justify-center rounded-lg bg-slate-800 hover:bg-slate-700 transition"
+                  className="w-8 h-8 flex items-center justify-center rounded-lg bg-muted hover:bg-muted transition"
                 >
-                  {copied ? <Check className="w-4 h-4 text-emerald-400" /> : <Copy className="w-4 h-4 text-slate-400" />}
+                  {copied ? <Check className="w-4 h-4 text-emerald-400" /> : <Copy className="w-4 h-4 text-muted-foreground" />}
                 </button>
               </div>
             </div>
@@ -354,7 +354,7 @@ export function SubscriptionScreen() {
               <p className="text-blue-300 font-semibold text-sm">
                 {ar ? '📋 تعليمات الدفع' : '📋 Payment Instructions'}
               </p>
-              <ol className="space-y-2 text-slate-300 text-sm list-decimal list-inside">
+              <ol className="space-y-2 text-foreground text-sm list-decimal list-inside">
                 <li>
                   {ar
                     ? `أرسل ${plan.price} USD عبر ${createdOrder.paymentMethod === 'instapay' ? 'InstaPay' : 'كاش / حوالة'}`
@@ -367,7 +367,7 @@ export function SubscriptionScreen() {
                   {ar ? 'راسل الأدمن على البريد أدناه' : 'Email the admin at the address below'}
                 </li>
               </ol>
-              <div className="flex items-center gap-2 bg-slate-900/60 rounded-xl px-3 py-2">
+              <div className="flex items-center gap-2 bg-card rounded-xl px-3 py-2">
                 <Mail className="w-4 h-4 text-blue-400 flex-shrink-0" />
                 <span className="text-blue-300 text-sm font-mono flex-1">{ADMIN_EMAIL_CONTACT}</span>
               </div>
@@ -384,7 +384,7 @@ export function SubscriptionScreen() {
 
             <button
               onClick={() => setStep('pending')}
-              className="w-full h-12 rounded-2xl border border-slate-700 text-slate-400 text-sm hover:border-slate-600 transition"
+              className="w-full h-12 rounded-2xl border border-border text-muted-foreground text-sm hover:border-border transition"
             >
               {ar ? 'متابعة حالة الطلب' : 'Track Order Status'}
             </button>
@@ -399,8 +399,8 @@ export function SubscriptionScreen() {
             <div className="inline-flex items-center justify-center w-14 h-14 rounded-full bg-amber-500/20 mb-2">
               <Clock className="w-7 h-7 text-amber-400" />
             </div>
-            <h2 className="text-white text-xl font-bold">{ar ? 'طلبك قيد المراجعة' : 'Order Under Review'}</h2>
-            <p className="text-slate-400 text-sm">{ar ? 'سيتم تفعيل اشتراكك فور موافقة الأدمن' : 'Your subscription will activate once the admin approves'}</p>
+            <h2 className="text-foreground text-xl font-bold">{ar ? 'طلبك قيد المراجعة' : 'Order Under Review'}</h2>
+            <p className="text-muted-foreground text-sm">{ar ? 'سيتم تفعيل اشتراكك فور موافقة الأدمن' : 'Your subscription will activate once the admin approves'}</p>
           </div>
 
           {myOrders.filter(o => o.status === 'pending' || o.status === 'approved' || o.status === 'rejected').map(order => {
@@ -409,7 +409,7 @@ export function SubscriptionScreen() {
               pending: 'text-amber-400 bg-amber-500/10 border-amber-500/20',
               approved: 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20',
               rejected: 'text-red-400 bg-red-500/10 border-red-500/20',
-              suspended: 'text-slate-400 bg-slate-500/10 border-slate-500/20',
+              suspended: 'text-muted-foreground bg-muted/40 border-border',
             };
             const statusLabel: Record<string, string> = {
               pending: ar ? 'قيد المراجعة' : 'Under Review',
@@ -418,36 +418,36 @@ export function SubscriptionScreen() {
               suspended: ar ? 'معلق' : 'Suspended',
             };
             return (
-              <div key={order.orderId} className="bg-slate-900 border border-slate-800 rounded-2xl p-4 space-y-3">
+              <div key={order.orderId} className="bg-card border border-border rounded-2xl p-4 space-y-3">
                 <div className="flex items-start justify-between">
                   <span className={`text-xs font-semibold px-2 py-1 rounded-full border ${statusColors[order.status]}`}>
                     {statusLabel[order.status]}
                   </span>
                   <div className="text-right">
-                    <p className="text-white font-bold">{plan ? (ar ? plan.nameAr : plan.nameEn) : order.plan}</p>
-                    <p className="text-slate-500 text-xs">${order.planPrice} USD</p>
+                    <p className="text-foreground font-bold">{plan ? (ar ? plan.nameAr : plan.nameEn) : order.plan}</p>
+                    <p className="text-muted-foreground text-xs">${order.planPrice} USD</p>
                   </div>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-slate-600 text-xs font-mono">{order.orderId}</span>
-                  <span className="text-slate-600 text-xs">{new Date(order.createdAt).toLocaleDateString(ar ? 'ar-EG' : 'en-US')}</span>
+                  <span className="text-muted-foreground text-xs font-mono">{order.orderId}</span>
+                  <span className="text-muted-foreground text-xs">{new Date(order.createdAt).toLocaleDateString(ar ? 'ar-EG' : 'en-US')}</span>
                 </div>
                 {order.adminNote && (
-                  <p className="text-slate-400 text-xs bg-slate-800 rounded-lg p-2">{order.adminNote}</p>
+                  <p className="text-muted-foreground text-xs bg-muted rounded-lg p-2">{order.adminNote}</p>
                 )}
               </div>
             );
           })}
 
           {myOrders.length === 0 && (
-            <p className="text-slate-500 text-sm text-center py-8">
+            <p className="text-muted-foreground text-sm text-center py-8">
               {ar ? 'لا توجد طلبات سابقة' : 'No previous orders'}
             </p>
           )}
 
           <button
             onClick={() => setStep('plans')}
-            className="w-full h-12 rounded-2xl border border-slate-700 text-slate-400 text-sm hover:border-slate-600 transition flex items-center justify-center gap-2"
+            className="w-full h-12 rounded-2xl border border-border text-muted-foreground text-sm hover:border-border transition flex items-center justify-center gap-2"
           >
             <ArrowRight className="w-4 h-4" />
             {ar ? 'العودة للباقات' : 'Back to Plans'}

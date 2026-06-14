@@ -124,12 +124,12 @@ export function BlockInterceptScreen() {
 
   const TimeCard = () =>
     activeSession ? (
-      <div className="bg-slate-900 border border-slate-800 rounded-xl px-5 py-3 text-center">
+      <div className="bg-card border border-border rounded-xl px-5 py-3 text-center">
         <div className="flex items-center justify-center gap-2 mb-1">
-          <Clock className="w-4 h-4 text-slate-500" />
-          <p className="text-slate-500 text-xs">الجلسة لا تزال تعمل</p>
+          <Clock className="w-4 h-4 text-muted-foreground" />
+          <p className="text-muted-foreground text-xs">الجلسة لا تزال تعمل</p>
         </div>
-        <p className="text-white font-bold text-xl tabular-nums">
+        <p className="text-foreground font-bold text-xl tabular-nums">
           {String(minutes).padStart(2, '0')}:{String(secs).padStart(2, '0')} متبقي
         </p>
       </div>
@@ -138,11 +138,11 @@ export function BlockInterceptScreen() {
   // ── Phase: Breathing ────────────────────────────────────────────────────────
   if (phase === 'breathing') {
     return (
-      <div className="fixed inset-0 bg-slate-950 flex flex-col items-center justify-center p-5 gap-6 z-50 overflow-hidden select-none">
+      <div className="fixed inset-0 bg-background flex flex-col items-center justify-center p-5 gap-6 z-50 overflow-hidden select-none">
         <div className="text-center space-y-2">
           <AppBadge />
-          <h1 className="text-white text-xl font-bold mt-3">خذ نفساً عميقاً</h1>
-          <p className="text-slate-400 text-sm">ثماني ثوانٍ من التنفس الواعي</p>
+          <h1 className="text-foreground text-xl font-bold mt-3">خذ نفساً عميقاً</h1>
+          <p className="text-muted-foreground text-sm">ثماني ثوانٍ من التنفس الواعي</p>
         </div>
 
         {/* Breathing circle */}
@@ -170,10 +170,10 @@ export function BlockInterceptScreen() {
         </div>
 
         <div className="text-center">
-          <p className="text-2xl font-bold text-white">
+          <p className="text-2xl font-bold text-foreground">
             {breathState === 'inhale' ? 'استنشق...' : 'أخرج...'}
           </p>
-          <p className="text-slate-600 text-sm mt-1">
+          <p className="text-muted-foreground text-sm mt-1">
             دورة {cyclesDone + 1} من {REQUIRED_CYCLES}
           </p>
         </div>
@@ -186,12 +186,12 @@ export function BlockInterceptScreen() {
   // ── Phase: Reason input ─────────────────────────────────────────────────────
   if (phase === 'reason') {
     return (
-      <div className="fixed inset-0 bg-slate-950 flex flex-col p-5 z-50 overflow-y-auto">
+      <div className="fixed inset-0 bg-background flex flex-col p-5 z-50 overflow-y-auto">
         <div className="flex-1 flex flex-col justify-center gap-5 py-6">
           <div className="text-center space-y-2">
             <AppBadge />
-            <h2 className="text-white text-xl font-bold mt-3">لماذا تريد فتحه الآن؟</h2>
-            <p className="text-slate-400 text-sm">سيُسجَّل سببك في تقريرك الأسبوعي</p>
+            <h2 className="text-foreground text-xl font-bold mt-3">لماذا تريد فتحه الآن؟</h2>
+            <p className="text-muted-foreground text-sm">سيُسجَّل سببك في تقريرك الأسبوعي</p>
           </div>
 
           <GoalBanner />
@@ -204,7 +204,7 @@ export function BlockInterceptScreen() {
                 if (reasonError) setReasonError('');
               }}
               placeholder="اكتب سبباً حقيقياً... (مثال: أحتاج التواصل مع شخص ما لأمر مهم)"
-              className="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-white placeholder-slate-600 text-sm resize-none focus:outline-none focus:border-blue-500 transition-colors"
+              className="w-full bg-muted border border-border rounded-xl px-4 py-3 text-foreground placeholder-muted-foreground text-sm resize-none focus:outline-none focus:border-blue-500 transition-colors"
               rows={4}
               maxLength={200}
               dir="rtl"
@@ -213,7 +213,7 @@ export function BlockInterceptScreen() {
             {reasonError && (
               <p className="text-red-400 text-xs mt-1.5">{reasonError}</p>
             )}
-            <p className="text-slate-600 text-xs mt-1 text-left">{reason.length}/200</p>
+            <p className="text-muted-foreground text-xs mt-1 text-left">{reason.length}/200</p>
           </div>
 
           <TimeCard />
@@ -231,13 +231,13 @@ export function BlockInterceptScreen() {
 
   // ── Phase: Choice ───────────────────────────────────────────────────────────
   return (
-    <div className="fixed inset-0 bg-slate-950 flex flex-col items-center justify-center p-5 gap-5 z-50">
+    <div className="fixed inset-0 bg-background flex flex-col items-center justify-center p-5 gap-5 z-50">
       <ShieldX className="w-14 h-14 text-red-400" />
 
       <div className="text-center space-y-2">
-        <h1 className="text-white text-2xl font-bold">أنت في منتصف جلسة</h1>
-        <div className="bg-slate-900 border border-slate-800 rounded-xl px-4 py-2 mx-auto max-w-xs">
-          <p className="text-slate-400 text-sm italic">"{reason}"</p>
+        <h1 className="text-foreground text-2xl font-bold">أنت في منتصف جلسة</h1>
+        <div className="bg-card border border-border rounded-xl px-4 py-2 mx-auto max-w-xs">
+          <p className="text-muted-foreground text-sm italic">"{reason}"</p>
         </div>
       </div>
 
@@ -254,7 +254,7 @@ export function BlockInterceptScreen() {
         </button>
         <button
           onClick={handleEmergency}
-          className="w-full h-11 rounded-xl bg-transparent border border-slate-700 text-slate-500 text-sm hover:bg-slate-900 transition"
+          className="w-full h-11 rounded-xl bg-transparent border border-border text-muted-foreground text-sm hover:bg-muted transition"
         >
           طوارئ حقيقية فقط
         </button>

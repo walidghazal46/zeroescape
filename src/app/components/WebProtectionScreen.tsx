@@ -18,7 +18,7 @@ export function WebProtectionScreen() {
 
   return (
     <div
-      className="min-h-screen bg-slate-950 flex flex-col px-4 overflow-y-auto hide-scrollbar"
+      className="min-h-screen bg-background flex flex-col px-4 overflow-y-auto hide-scrollbar"
       style={{
         paddingTop: `calc(env(safe-area-inset-top, 0px) + 20px)`,
         paddingBottom: `calc(env(safe-area-inset-bottom, 0px) + 24px)`,
@@ -27,11 +27,11 @@ export function WebProtectionScreen() {
       <div className="flex items-center gap-3 mb-6">
         <button
           onClick={() => navigate('/home')}
-          className="w-9 h-9 flex items-center justify-center text-slate-400 hover:text-white transition"
+          className="w-9 h-9 flex items-center justify-center text-muted-foreground hover:text-foreground transition"
         >
           <ChevronRight className="w-6 h-6" />
         </button>
-        <h1 className="text-white text-2xl font-bold">حماية الويب</h1>
+        <h1 className="text-foreground text-2xl font-bold">حماية الويب</h1>
       </div>
 
       <div className="bg-gradient-to-br from-emerald-500/10 to-teal-600/10 border border-emerald-500/20 rounded-3xl p-6 mb-6">
@@ -40,13 +40,13 @@ export function WebProtectionScreen() {
             <Shield className="w-8 h-8 text-emerald-400" />
           </div>
           <div className="flex-1 text-right">
-            <h2 className="text-white font-bold mb-1">الحماية الآمنة</h2>
-            <p className="text-slate-400 text-sm">فلترة DNS نشطة</p>
+            <h2 className="text-foreground font-bold mb-1">الحماية الآمنة</h2>
+            <p className="text-muted-foreground text-sm">فلترة DNS نشطة</p>
           </div>
           <button
             onClick={() => setWebProtection(!enabled)}
             className={`w-14 h-8 rounded-full transition relative ${
-              enabled ? 'bg-emerald-500' : 'bg-slate-700'
+              enabled ? 'bg-emerald-500' : 'bg-muted-foreground/30'
             }`}
           >
             <div className={`absolute top-1 w-6 h-6 bg-white rounded-full transition-all ${
@@ -55,24 +55,24 @@ export function WebProtectionScreen() {
           </button>
         </div>
 
-        <div className="bg-slate-900/50 rounded-xl p-4">
-          <p className="text-slate-300 text-sm leading-relaxed">
+        <div className="bg-card/50 rounded-xl p-4">
+          <p className="text-foreground text-sm leading-relaxed">
             يتم تصفية جميع طلبات الإنترنت عبر DNS آمن لحظر المواقع الضارة والمحتوى غير المناسب تلقائياً
           </p>
         </div>
       </div>
 
       <div className="flex-1">
-        <h3 className="text-white font-medium mb-4">الفئات المحمية</h3>
+        <h3 className="text-foreground font-medium mb-4">الفئات المحمية</h3>
         <div className="space-y-3">
           {categories.map((category) => (
             <div
               key={category.id}
-              className="bg-slate-900 rounded-2xl p-5 flex items-center gap-4 border border-slate-800"
+              className="bg-card rounded-2xl p-5 flex items-center gap-4 border border-border"
             >
               <CheckCircle2 className="w-6 h-6 text-emerald-400" />
               <div className="flex-1 text-right">
-                <h4 className="text-white font-medium">{category.label}</h4>
+                <h4 className="text-foreground font-medium">{category.label}</h4>
               </div>
               <div className="px-3 py-1 bg-emerald-500/20 rounded-lg">
                 <span className="text-emerald-400 text-sm">محظور</span>

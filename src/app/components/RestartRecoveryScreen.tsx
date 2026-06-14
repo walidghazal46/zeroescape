@@ -34,7 +34,7 @@ export function RestartRecoveryScreen() {
   const modeLabel = activeSession ? (modeLabels[activeSession.mode] ?? 'جلسة') : '';
 
   return (
-    <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center p-6">
+    <div className="min-h-screen bg-background flex flex-col items-center justify-center p-6">
       <div className="w-full max-w-md space-y-8 text-center">
         {activeSession ? (
           <>
@@ -48,21 +48,21 @@ export function RestartRecoveryScreen() {
             <div className="space-y-3">
               <div className="flex items-center justify-center gap-2">
                 <CheckCircle2 className="w-6 h-6 text-emerald-400" />
-                <h1 className="text-white text-3xl font-bold">تم استعادة الجلسة</h1>
+                <h1 className="text-foreground text-3xl font-bold">تم استعادة الجلسة</h1>
               </div>
-              <p className="text-slate-400 text-base leading-relaxed">
+              <p className="text-muted-foreground text-base leading-relaxed">
                 جلسة التركيز الخاصة بك نشطة ومحمية مرة أخرى
               </p>
             </div>
 
-            <div className="bg-slate-900 rounded-2xl p-6 border border-slate-800 space-y-4">
+            <div className="bg-card rounded-2xl p-6 border border-border space-y-4">
               <div className="flex items-center justify-center gap-3">
                 <Clock className="w-5 h-5 text-blue-400" />
-                <span className="text-slate-400">الوقت المتبقي</span>
+                <span className="text-muted-foreground">الوقت المتبقي</span>
               </div>
-              <div className="text-5xl font-bold text-white tabular-nums">{timeStr}</div>
-              <div className="pt-4 border-t border-slate-800">
-                <p className="text-slate-400 text-sm">{modeLabel}</p>
+              <div className="text-5xl font-bold text-foreground tabular-nums">{timeStr}</div>
+              <div className="pt-4 border-t border-border">
+                <p className="text-muted-foreground text-sm">{modeLabel}</p>
               </div>
             </div>
 
@@ -82,14 +82,14 @@ export function RestartRecoveryScreen() {
         ) : (
           <>
             <div className="relative">
-              <div className="absolute inset-0 bg-slate-700/20 blur-3xl rounded-full" />
-              <div className="relative bg-slate-800 p-8 rounded-full inline-block">
-                <AlertCircle className="w-20 h-20 text-slate-400" strokeWidth={2} />
+              <div className="absolute inset-0 bg-muted/40 blur-3xl rounded-full" />
+              <div className="relative bg-muted p-8 rounded-full inline-block">
+                <AlertCircle className="w-20 h-20 text-muted-foreground" strokeWidth={2} />
               </div>
             </div>
             <div>
-              <h1 className="text-white text-2xl font-bold mb-2">لا توجد جلسة نشطة</h1>
-              <p className="text-slate-400 text-sm">جارٍ توجيهك للشاشة الرئيسية...</p>
+              <h1 className="text-foreground text-2xl font-bold mb-2">لا توجد جلسة نشطة</h1>
+              <p className="text-muted-foreground text-sm">جارٍ توجيهك للشاشة الرئيسية...</p>
             </div>
           </>
         )}

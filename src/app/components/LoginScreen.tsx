@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Mail, Lock, Eye, EyeOff, Chrome, LogIn, Zap, Smartphone } from 'lucide-react';
+import { motion, AnimatePresence } from 'motion/react';
+import { Mail, Lock, Eye, EyeOff, Chrome, LogIn, Zap, Smartphone, CheckCircle2 } from 'lucide-react';
 import { useAuthStore } from '../../store/authStore';
 import { authService, getAuthErrorCode } from '../../services/authService';
 import { usePreferencesStore } from '../../store/preferencesStore';
@@ -141,6 +142,56 @@ const getAuthErrorMessage = (
   return lang === 'ar' ? selected.ar : selected.en;
 };
 
+/* ── Reusable styled input ────────────────────────────────────────────────── */
+interface ZeInputProps {
+  type: string;
+  value: string;
+  onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  placeholder: string;
+  required?: boolean;
+  iconRight?: React.ReactNode;
+  iconLeft?: React.ReactNode;
+}
+function ZeInput({ type, value, onChange, placeholder, required, iconRight, iconLeft }: ZeInputProps) {
+  return (
+    <div className="relative">
+      {iconRight && (
+        <span
+          className="absolute top-1/2 -translate-y-1/2"
+          style={{ right: 16, color: '#6b8079', pointerEvents: 'none', display: 'flex' }}
+        >
+          {iconRight}
+        </span>
+      )}
+      <input
+        type={type}
+        value={value}
+        onChange={onChange}
+        placeholder={placeholder}
+        required={required}
+        className="ze-input w-full rounded-2xl text-right"
+        style={{
+          background: 'rgba(255,255,255,0.85)',
+          border: '1.5px solid rgba(21,184,166,0.18)',
+          color: '#1c2e2b',
+          fontSize: 'var(--text-base)',
+          padding: '0.85rem 3rem 0.85rem 3rem',
+          outline: 'none',
+          transition: 'border-color 0.2s, box-shadow 0.2s',
+        }}
+      />
+      {iconLeft && (
+        <span
+          className="absolute top-1/2 -translate-y-1/2"
+          style={{ left: 16, color: '#6b8079', display: 'flex' }}
+        >
+          {iconLeft}
+        </span>
+      )}
+    </div>
+  );
+}
+
 export function LoginScreen() {
   const navigate = useNavigate();
   const { setUser } = useAuthStore();
@@ -156,24 +207,13 @@ export function LoginScreen() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { language: lang, setLanguage } = usePreferencesStore();
 
-  // Block non-mobile access at component level (second safety layer after MobileOnlyGuard)
-  if (!isMobileApp()) {
-    return (
-      <div dir="rtl" className="fixed inset-0 bg-slate-950 flex flex-col items-center justify-center gap-6 px-6 text-center">
-        <Smartphone className="w-14 h-14 text-sky-400" />
-        <div>
-          <h2 className="text-white text-xl font-bold mb-2">تسجيل الدخول متاح على الموبايل فقط</h2>
-          <p className="text-slate-400 text-sm">حمّل التطبيق على هاتفك الأندرويد</p>
-        </div>
-      </div>
-    );
-  }
+  // Mobile-only guard temporarily bypassed for browser preview
+  // if (!isMobileApp()) { ... }
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
     setIsSubmitting(true);
-
     try {
       const user = await authService.signInWithEmail(email, password);
       setUser(user);
@@ -188,7 +228,6 @@ export function LoginScreen() {
   const handleGuestMode = async () => {
     setError('');
     setIsSubmitting(true);
-
     try {
       const guestUser = await authService.createGuestUser();
       setUser(guestUser);
@@ -203,7 +242,6 @@ export function LoginScreen() {
   const handleGoogleSignIn = async () => {
     setError('');
     setIsSubmitting(true);
-
     try {
       const user = await authService.signInWithGoogle();
       setUser(user);
@@ -217,232 +255,401 @@ export function LoginScreen() {
 
   return (
     <div
-      className="min-h-screen bg-slate-950 flex flex-col overflow-y-auto hide-scrollbar px-4"
-      style={{
-        paddingTop: `calc(env(safe-area-inset-top, 0px) + 20px)`,
-        paddingBottom: `calc(env(safe-area-inset-bottom, 0px) + 24px)`,
-      }}
+      dir="rtl"
+      className="min-h-screen overflow-y-auto hide-scrollbar flex flex-col"
+      style={{ background: '#f6f5ef' }}
     >
-      <div className="mb-2 flex items-center justify-between md:mb-6">
-        <div className="flex flex-1 items-center justify-center px-3 md:px-0">
-          <div className="relative">
-            <div className="absolute inset-0 rounded-full bg-sky-400/10 blur-2xl"></div>
-            <img
-              src="/icon.png"
-              alt="ZeroEscape"
-              className="relative rounded-xl object-cover h-[160px] w-[160px] md:h-[270px] md:w-[270px]"
-            />
-          </div>
+      {/* ── Top hero section ── */}
+      <div
+        className="relative flex flex-col items-center justify-end overflow-hidden flex-shrink-0"
+        style={{
+          paddingTop: `calc(env(safe-area-inset-top, 0px) + 28px)`,
+          paddingBottom: 32,
+          background: 'linear-gradient(180deg, #eaf6f1 0%, #f6f5ef 100%)',
+          minHeight: '28vh',
+        }}
+      >
+        {/* Ambient blob top-right */}
+        <div
+          className="absolute pointer-events-none"
+          style={{
+            top: -20,
+            right: -30,
+            width: 200,
+            height: 200,
+            borderRadius: '50%',
+            background: 'radial-gradient(circle, rgba(76,175,125,0.3) 0%, transparent 70%)',
+            filter: 'blur(32px)',
+          }}
+        />
+        {/* App icon */}
+        <div className="relative mb-4">
+          <div
+            className="absolute rounded-[24px]"
+            style={{
+              inset: -2,
+              background: 'linear-gradient(135deg, #15b8a660, #4caf7d60)',
+              borderRadius: 26,
+            }}
+          />
+          <img
+            src="/icon.png"
+            alt="ZeroEscape"
+            className="relative rounded-[22px]"
+            style={{
+              width: 72,
+              height: 72,
+              boxShadow: '0 12px 40px rgba(0,0,0,0.55)',
+            }}
+            onError={(e) => {
+              (e.target as HTMLImageElement).style.display = 'none';
+            }}
+          />
         </div>
-        <div className="hidden md:fixed md:bottom-6 md:right-6 md:z-50 md:flex md:items-center md:gap-2">
-          <button
-            onClick={() => setLanguage('ar')}
-            className={`px-2 py-1 rounded text-xs font-medium transition ${
-              lang === 'ar' ? 'bg-sky-600 text-white' : 'bg-slate-900 text-slate-400'
-            }`}
-          >
-            العربية
-          </button>
-          <button
-            onClick={() => setLanguage('en')}
-            className={`px-2 py-1 rounded text-xs font-medium transition ${
-              lang === 'en' ? 'bg-sky-600 text-white' : 'bg-slate-900 text-slate-400'
-            }`}
-          >
-            EN
-          </button>
+        <h1
+          className="font-bold text-center"
+          style={{ fontSize: 'var(--text-xl)', color: '#1c2e2b' }}
+        >
+          Zero<span style={{ color: '#15b8a6' }}>Escape</span>{' '}
+          <span style={{ color: 'rgba(21,184,166,0.5)', fontSize: 'var(--text-sm)' }}>No.1</span>
+        </h1>
+        <p
+          className="text-center mt-1"
+          style={{ fontSize: 'var(--text-xs)', color: '#6b8079', letterSpacing: '0.02em' }}
+        >
+          حماية رقمية ذكية لحياة أفضل
+        </p>
+
+        {/* Language switcher */}
+        <div
+          className="absolute flex items-center gap-1.5"
+          style={{ top: `calc(env(safe-area-inset-top, 0px) + 14px)`, left: 16 }}
+        >
+          {(['ar', 'en'] as const).map((l) => (
+            <button
+              key={l}
+              onClick={() => setLanguage(l)}
+              className="rounded-lg px-2.5 py-1 transition"
+              style={{
+                fontSize: 'var(--text-xs)',
+                fontWeight: 600,
+                background: lang === l ? 'rgba(21,184,166,0.18)' : 'transparent',
+                color: lang === l ? '#15b8a6' : '#6b8079',
+                border: `1px solid ${lang === l ? 'rgba(21,184,166,0.35)' : 'transparent'}`,
+              }}
+            >
+              {l === 'ar' ? 'ع' : 'EN'}
+            </button>
+          ))}
         </div>
       </div>
 
-      <div className="mx-auto mb-4 flex w-full max-w-sm gap-2 rounded-2xl bg-slate-900 p-1 md:mb-8 md:max-w-none">
-        <button
-          onClick={() => setTab('login')}
-          className={`flex-1 rounded-xl py-2.5 text-sm font-medium transition md:py-3 md:text-base ${
-            tab === 'login'
-              ? 'bg-gradient-to-r from-sky-600 to-cyan-700 text-white'
-              : 'text-slate-400 hover:text-slate-300'
-          }`}
+      {/* ── Card section ── */}
+      <div
+        className="flex-1 flex flex-col px-5"
+        style={{
+          paddingBottom: `calc(env(safe-area-inset-bottom, 0px) + 28px)`,
+          paddingTop: 24,
+        }}
+      >
+        {/* ── Tab switcher ── */}
+        <div
+          className="flex rounded-2xl p-1 mb-6"
+          style={{ background: 'rgba(255,255,255,0.7)', border: '1px solid rgba(21,184,166,0.14)' }}
         >
-          {lang === 'ar' ? 'دخول' : 'Login'}
-        </button>
-        <button
-          onClick={() => navigate('/signup')}
-          className="flex-1 rounded-xl py-2.5 text-sm font-medium transition md:py-3 md:text-base text-slate-400 hover:text-slate-300"
-        >
-          {lang === 'ar' ? 'إنشاء حساب' : 'Sign Up'}
-        </button>
-        <button
-          onClick={() => setTab('guest')}
-          className={`flex-1 rounded-xl py-2.5 text-sm font-medium transition md:py-3 md:text-base ${
-            tab === 'guest'
-              ? 'bg-gradient-to-r from-sky-600 to-cyan-700 text-white'
-              : 'text-slate-400 hover:text-slate-300'
-          }`}
-        >
-          {lang === 'ar' ? 'ضيف' : 'Guest'}
-        </button>
-      </div>
+          {[
+            { key: 'login', label: lang === 'ar' ? 'دخول' : 'Login' },
+            { key: 'signup', label: lang === 'ar' ? 'حساب جديد' : 'Sign Up', isNav: true },
+            { key: 'guest', label: lang === 'ar' ? 'ضيف' : 'Guest' },
+          ].map(({ key, label, isNav }) => {
+            const isActive = tab === key;
+            return (
+              <button
+                key={key}
+                onClick={() => {
+                  if (isNav) {
+                    navigate('/signup');
+                  } else {
+                    setTab(key as 'login' | 'guest');
+                  }
+                }}
+                className="flex-1 rounded-xl py-2.5 transition relative"
+                style={{
+                  fontSize: 'var(--text-sm)',
+                  fontWeight: 700,
+                  color: isActive ? '#f6f5ef' : '#6b8079',
+                  background: isActive
+                    ? 'linear-gradient(135deg, #15b8a6, #0d9488)'
+                    : 'transparent',
+                  boxShadow: isActive ? '0 4px 16px rgba(21,184,166,0.25)' : 'none',
+                }}
+              >
+                {label}
+              </button>
+            );
+          })}
+        </div>
 
-      <div className="mx-auto w-full max-w-sm md:max-w-none">
+        {/* ── Google sign-in ── */}
         <button
           onClick={handleGoogleSignIn}
           disabled={isSubmitting || (isAndroidWebView && !hasNativeGoogleSignIn)}
-          className="mb-5 flex w-full items-center justify-center gap-3 rounded-2xl border border-slate-800 bg-slate-900 py-3.5 text-white transition hover:bg-slate-800 md:mb-6 md:py-4"
+          className="flex w-full items-center justify-center gap-3 rounded-2xl mb-4 transition ze-card-hover"
+          style={{
+            height: 'var(--btn-h)',
+            background: 'rgba(255,255,255,0.85)',
+            border: '1.5px solid rgba(21,184,166,0.18)',
+            color: '#1c2e2b',
+            fontSize: 'var(--text-sm)',
+            fontWeight: 600,
+            opacity: isSubmitting || (isAndroidWebView && !hasNativeGoogleSignIn) ? 0.45 : 1,
+          }}
         >
-          <Chrome className="h-5 w-5" />
-          {lang === 'ar' ? 'دخول بـ جوجل' : 'Sign in with Google'}
+          <Chrome style={{ width: 'var(--icon-md)', height: 'var(--icon-md)', flexShrink: 0 }} />
+          {lang === 'ar' ? 'المتابعة بحساب جوجل' : 'Continue with Google'}
         </button>
 
         {isAndroidWebView && !hasNativeGoogleSignIn && (
-          <div className="mb-4 rounded-2xl border border-yellow-500/30 bg-yellow-500/10 px-4 py-3 text-right text-sm text-yellow-200">
+          <div
+            className="mb-4 rounded-xl px-4 py-3 text-right"
+            style={{
+              background: 'rgba(249,115,22,0.1)',
+              border: '1px solid rgba(249,115,22,0.25)',
+              fontSize: 'var(--text-xs)',
+              color: '#fed7aa',
+            }}
+          >
             {lang === 'ar'
-              ? 'تسجيل Google غير متاح داخل نسخة Android الحالية (WebView). استخدم البريد وكلمة المرور.'
-              : 'Google sign-in is unavailable in the current Android WebView build. Use email and password.'}
+              ? 'تسجيل Google غير متاح في هذه النسخة. استخدم البريد وكلمة المرور.'
+              : 'Google sign-in unavailable in this build. Use email and password.'}
           </div>
         )}
 
-        {error && (
-          <div className="mb-4 rounded-2xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-right text-sm text-red-300">
-            {error}
-          </div>
-        )}
-
-        <div className="relative mb-5 md:mb-6">
+        {/* ── Divider ── */}
+        <div className="relative mb-4">
           <div className="absolute inset-0 flex items-center">
-            <div className="h-px w-full bg-slate-800"></div>
+            <div className="w-full" style={{ height: 1, background: 'rgba(21,184,166,0.14)' }} />
           </div>
-          <div className="relative flex justify-center text-sm">
-            <span className="bg-slate-950 px-2 text-slate-500">{lang === 'ar' ? 'أو' : 'Or'}</span>
+          <div className="relative flex justify-center">
+            <span
+              className="px-3"
+              style={{ background: '#f6f5ef', fontSize: 'var(--text-xs)', color: '#6b8079' }}
+            >
+              {lang === 'ar' ? 'أو' : 'or'}
+            </span>
           </div>
         </div>
 
-        {tab === 'login' && (
-          <form onSubmit={handleLogin} className="space-y-3 md:space-y-5">
-            <div>
-              <label className="mb-2 block text-sm text-slate-400">
-                {lang === 'ar' ? 'البريد الإلكتروني' : 'Email'}
-              </label>
-              <div className="relative">
-                <Mail className="absolute right-4 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-500" />
-                <input
+        {/* ── Error message ── */}
+        <AnimatePresence>
+          {error && (
+            <motion.div
+              initial={{ opacity: 0, y: -8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -8 }}
+              className="mb-4 rounded-xl px-4 py-3 text-right"
+              style={{
+                background: 'rgba(240,62,62,0.1)',
+                border: '1px solid rgba(240,62,62,0.25)',
+                fontSize: 'var(--text-sm)',
+                color: '#fca5a5',
+              }}
+            >
+              {error}
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* ── Login tab ── */}
+        <AnimatePresence mode="wait">
+          {tab === 'login' && (
+            <motion.form
+              key="login-form"
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -16 }}
+              transition={{ duration: 0.28 }}
+              onSubmit={handleLogin}
+              className="space-y-4"
+            >
+              <div>
+                <label
+                  className="block mb-2 text-right"
+                  style={{ fontSize: 'var(--text-sm)', color: '#a9a7c8', fontWeight: 500 }}
+                >
+                  {lang === 'ar' ? 'البريد الإلكتروني' : 'Email'}
+                </label>
+                <ZeInput
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="example@email.com"
-                  className="w-full rounded-2xl border border-slate-800 bg-slate-900 px-4 py-3 pr-12 text-white placeholder:text-slate-600 transition focus:border-sky-500 focus:outline-none md:py-4"
                   required
+                  iconRight={<Mail style={{ width: 'var(--icon-sm)', height: 'var(--icon-sm)' }} />}
                 />
               </div>
-            </div>
 
-            <div>
-              <label className="mb-2 block text-sm text-slate-400">
-                {lang === 'ar' ? 'كلمة المرور' : 'Password'}
-              </label>
-              <div className="relative">
-                <Lock className="absolute right-4 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-500" />
-                <input
+              <div>
+                <label
+                  className="block mb-2 text-right"
+                  style={{ fontSize: 'var(--text-sm)', color: '#a9a7c8', fontWeight: 500 }}
+                >
+                  {lang === 'ar' ? 'كلمة المرور' : 'Password'}
+                </label>
+                <ZeInput
                   type={showPassword ? 'text' : 'password'}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••"
-                  className="w-full rounded-2xl border border-slate-800 bg-slate-900 px-4 py-3 pl-12 pr-12 text-white placeholder:text-slate-600 transition focus:border-sky-500 focus:outline-none md:py-4"
                   required
+                  iconRight={<Lock style={{ width: 'var(--icon-sm)', height: 'var(--icon-sm)' }} />}
+                  iconLeft={
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      style={{ color: '#6b8079', display: 'flex' }}
+                    >
+                      {showPassword
+                        ? <EyeOff style={{ width: 'var(--icon-sm)', height: 'var(--icon-sm)' }} />
+                        : <Eye style={{ width: 'var(--icon-sm)', height: 'var(--icon-sm)' }} />}
+                    </button>
+                  }
                 />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-400"
-                >
-                  {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
-                </button>
               </div>
-            </div>
 
-            <button type="button" className="text-sm text-sky-400 transition hover:text-sky-300">
-              {lang === 'ar' ? 'نسيت كلمة المرور؟' : 'Forgot password?'}
-            </button>
+              <button
+                type="button"
+                className="text-right w-full transition"
+                style={{ fontSize: 'var(--text-sm)', color: '#15b8a6' }}
+              >
+                {lang === 'ar' ? 'نسيت كلمة المرور؟' : 'Forgot password?'}
+              </button>
 
-            <button
-              type="submit"
-              disabled={isSubmitting}
-              className="flex w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-sky-600 to-cyan-700 py-3 text-white transition hover:opacity-90 md:py-4"
+              <button
+                type="submit"
+                disabled={isSubmitting}
+                className="btn-primary transition ze-card-hover"
+                style={{
+                  background: isSubmitting
+                    ? 'rgba(21,184,166,0.4)'
+                    : 'linear-gradient(135deg, #15b8a6, #0d9488)',
+                  color: '#f6f5ef',
+                  fontWeight: 700,
+                  boxShadow: isSubmitting ? 'none' : '0 6px 24px rgba(21,184,166,0.3)',
+                }}
+              >
+                <LogIn style={{ width: 'var(--icon-sm)', height: 'var(--icon-sm)', marginLeft: 8 }} />
+                {isSubmitting
+                  ? (lang === 'ar' ? 'جاري التنفيذ...' : 'Please wait...')
+                  : (lang === 'ar' ? 'تسجيل الدخول' : 'Sign In')}
+              </button>
+            </motion.form>
+          )}
+
+          {/* ── Guest tab ── */}
+          {tab === 'guest' && (
+            <motion.div
+              key="guest-tab"
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -16 }}
+              transition={{ duration: 0.28 }}
+              className="space-y-4"
             >
-              <LogIn className="h-5 w-5" />
-              {isSubmitting ? (lang === 'ar' ? 'جاري التنفيذ...' : 'Please wait...') : (lang === 'ar' ? 'تسجيل الدخول' : 'Sign In')}
-            </button>
-
-            <div className="mt-2 flex items-center justify-end gap-2 md:hidden">
-              <button
-                onClick={() => setLanguage('ar')}
-                className={`px-2 py-1 rounded text-xs font-medium transition ${
-                  lang === 'ar' ? 'bg-sky-600 text-white' : 'bg-slate-900 text-slate-400'
-                }`}
+              {/* Trial highlight card */}
+              <div
+                className="rounded-2xl p-5 relative overflow-hidden"
+                style={{
+                  background: 'linear-gradient(135deg, rgba(76,175,125,0.2) 0%, rgba(16,217,140,0.1) 100%)',
+                  border: '1.5px solid rgba(21,184,166,0.22)',
+                }}
               >
-                العربية
-              </button>
-              <button
-                onClick={() => setLanguage('en')}
-                className={`px-2 py-1 rounded text-xs font-medium transition ${
-                  lang === 'en' ? 'bg-sky-600 text-white' : 'bg-slate-900 text-slate-400'
-                }`}
-              >
-                EN
-              </button>
-            </div>
-          </form>
-        )}
-
-        {tab === 'guest' && (
-          <div className="space-y-4 md:space-y-6">
-            <div className="rounded-2xl border border-sky-500/20 bg-gradient-to-br from-sky-500/10 to-teal-500/10 p-5 md:p-6">
-              <div className="flex items-start gap-3 md:gap-4">
-                <Zap className="mt-1 h-6 w-6 flex-shrink-0 text-teal-300" />
-                <div className="flex-1 text-right">
-                  <h3 className="mb-2 font-medium text-white">
-                    {lang === 'ar' ? 'جرّب التطبيق مجاناً' : 'Try for Free'}
-                  </h3>
-                  <p className="text-sm leading-relaxed text-slate-400">
-                    {lang === 'ar'
-                      ? 'احصل على 48 ساعة كاملة لاستكشاف جميع الميزات دون الحاجة لحساب'
-                      : 'Get 48 hours to explore all features without an account'}
-                  </p>
+                {/* Gold accent strip */}
+                <div
+                  className="absolute top-0 right-0 h-full w-1 rounded-r-2xl"
+                  style={{ background: 'linear-gradient(180deg, #15b8a6, #0d9488)' }}
+                />
+                <div className="flex items-start gap-4 text-right">
+                  <div
+                    className="rounded-2xl flex items-center justify-center flex-shrink-0"
+                    style={{
+                      width: 48,
+                      height: 48,
+                      background: 'rgba(21,184,166,0.15)',
+                      border: '1px solid rgba(21,184,166,0.25)',
+                    }}
+                  >
+                    <Zap style={{ width: 22, height: 22, color: '#15b8a6' }} />
+                  </div>
+                  <div className="flex-1">
+                    <h3
+                      className="font-bold mb-1"
+                      style={{ fontSize: 'var(--text-base)', color: '#1c2e2b' }}
+                    >
+                      {lang === 'ar' ? 'جرّب التطبيق مجاناً' : 'Try for Free'}
+                    </h3>
+                    <p style={{ fontSize: 'var(--text-sm)', color: '#6b8079', lineHeight: 1.6 }}>
+                      {lang === 'ar'
+                        ? 'احصل على 48 ساعة كاملة لاستكشاف جميع الميزات دون الحاجة لحساب'
+                        : 'Get 48 hours to explore all features without an account'}
+                    </p>
+                  </div>
                 </div>
               </div>
-            </div>
 
-            <div className="space-y-3 rounded-2xl border border-slate-800 bg-slate-900 p-5 md:p-6">
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-slate-400">{lang === 'ar' ? 'مدة الاستخدام' : 'Duration'}</span>
-                <span className="text-lg font-bold text-white">48 {lang === 'ar' ? 'ساعة' : 'hours'}</span>
+              {/* Feature checklist */}
+              <div
+                className="rounded-2xl p-4 space-y-3"
+                style={{
+                  background: 'rgba(255,255,255,0.7)',
+                  border: '1.5px solid rgba(21,184,166,0.14)',
+                }}
+              >
+                {[
+                  { label: lang === 'ar' ? '48 ساعة استخدام' : '48 hours trial', value: '48h' },
+                  { label: lang === 'ar' ? 'جميع الميزات متاحة' : 'All features unlocked', value: '✓' },
+                  { label: lang === 'ar' ? 'بدون بطاقة ائتمانية' : 'No credit card', value: lang === 'ar' ? 'مجاني' : 'Free' },
+                ].map(({ label, value }) => (
+                  <div key={label} className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <CheckCircle2 style={{ width: 16, height: 16, color: '#10d98c', flexShrink: 0 }} />
+                      <span style={{ fontSize: 'var(--text-sm)', color: '#a9a7c8' }}>{label}</span>
+                    </div>
+                    <span style={{ fontSize: 'var(--text-sm)', fontWeight: 700, color: '#1c2e2b' }}>
+                      {value}
+                    </span>
+                  </div>
+                ))}
               </div>
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-slate-400">{lang === 'ar' ? 'التكلفة' : 'Cost'}</span>
-                <span className="text-lg font-bold text-teal-300">{lang === 'ar' ? 'مجاني' : 'Free'}</span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-slate-400">{lang === 'ar' ? 'جميع الميزات' : 'Features'}</span>
-                <span className="text-lg font-bold text-sky-300">✓</span>
-              </div>
-            </div>
 
-            <button
-              onClick={handleGuestMode}
-              disabled={isSubmitting}
-              className="flex w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-teal-600 to-cyan-700 py-3.5 font-medium text-white transition hover:opacity-90 md:py-4"
-            >
-              <Zap className="h-5 w-5" />
-              {lang === 'ar' ? 'ابدأ كضيف' : 'Start as Guest'}
-            </button>
+              <button
+                onClick={handleGuestMode}
+                disabled={isSubmitting}
+                className="btn-primary transition ze-card-hover"
+                style={{
+                  background: isSubmitting
+                    ? 'rgba(76,175,125,0.4)'
+                    : 'linear-gradient(135deg, #4caf7d, #4caf7d)',
+                  color: '#1c2e2b',
+                  fontWeight: 700,
+                  boxShadow: isSubmitting ? 'none' : '0 6px 24px rgba(76,175,125,0.3)',
+                }}
+              >
+                <Zap style={{ width: 'var(--icon-sm)', height: 'var(--icon-sm)', marginLeft: 8 }} />
+                {lang === 'ar' ? 'ابدأ كضيف — مجاناً' : 'Start as Guest — Free'}
+              </button>
 
-            <p className="text-center text-xs text-slate-500">
-              {lang === 'ar'
-                ? 'بعد انتهاء 48 ساعة، يمكنك الاشتراك برسوم رمزية'
-                : 'After 48 hours, you can upgrade to premium'}
-            </p>
-          </div>
-        )}
-
+              <p
+                className="text-center"
+                style={{ fontSize: 'var(--text-xs)', color: '#6b8079' }}
+              >
+                {lang === 'ar'
+                  ? 'بعد انتهاء 48 ساعة، يمكنك الاشتراك برسوم رمزية'
+                  : 'After 48 hours, you can upgrade to premium'}
+              </p>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
     </div>
   );
