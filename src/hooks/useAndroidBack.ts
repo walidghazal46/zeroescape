@@ -5,13 +5,8 @@ import { useLocation, useNavigate } from 'react-router-dom';
  * Routes where pressing the Android back button should prompt the user
  * to exit the app instead of navigating backwards.
  */
-const EXIT_ROUTES = new Set(['/', '/home', '/login', '/signup']);
+const EXIT_ROUTES = new Set(['/', '/home', '/login']);
 const SESSION_LOCKED_ROUTES = new Set(['/active-session', '/emergency-exit']);
-const BACK_FALLBACK_ROUTES: Record<string, string> = {
-  '/signup': '/login',
-  '/permissions': '/onboarding',
-  '/schedule': '/home',
-};
 
 /**
  * Registers window.onAndroidBack so MainActivity can call it when the
@@ -37,15 +32,7 @@ export function useAndroidBack(): {
 
     (window as any).onAndroidBack = () => {
       if (EXIT_ROUTES.has(location.pathname)) {
-        const androidBridge = (window as any).Android;
-        if (typeof androidBridge?.showExitDialog === 'function') {
-          androidBridge.showExitDialog();
-        } else {
-          // In-app fallback dialog
-          setShowExitDialog(true);
-        }
-      } else if (BACK_FALLBACK_ROUTES[location.pathname]) {
-        navigate(BACK_FALLBACK_ROUTES[location.pathname], { replace: true });
+        setShowExitDialog(true);
       } else {
         navigate(-1);
       }
