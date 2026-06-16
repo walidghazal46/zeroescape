@@ -519,19 +519,11 @@ public class MainActivity extends AppCompatActivity {
                     return;
                 }
 
-                try {
-                    // Sign out first so the account picker always shows, then launch on complete
-                    googleSignInClient.signOut().addOnCompleteListener(MainActivity.this, task -> {
-                        try {
-                            Intent signInIntent = googleSignInClient.getSignInIntent();
-                            googleSignInLauncher.launch(signInIntent);
-                        } catch (Exception e) {
-                            emitGoogleSignInResult("error", "native_launch_failed");
-                        }
-                    });
-                } catch (Exception e) {
-                    emitGoogleSignInResult("error", "native_launch_failed");
-                }
+                // Force sign out from both Google and Firebase state to clear any cached errors
+                googleSignInClient.signOut().addOnCompleteListener(MainActivity.this, task -> {
+                    Intent signInIntent = googleSignInClient.getSignInIntent();
+                    googleSignInLauncher.launch(signInIntent);
+                });
             });
         }
 

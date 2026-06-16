@@ -13,7 +13,7 @@ import {
   type User as FirebaseAuthUser,
 } from 'firebase/auth';
 import { auth, db } from '../config/firebase';
-import { doc, setDoc, getDoc, serverTimestamp } from 'firebase/firestore';
+import { doc, setDoc, getDoc, serverTimestamp, enableNetwork } from 'firebase/firestore';
 import { User, ADMIN_EMAIL, REGISTERED_TRIAL_DAYS, GUEST_TRIAL_DAYS, type AccountStatus } from '../store/authStore';
 import { subscriptionService } from './subscriptionService';
 
@@ -26,6 +26,11 @@ const isAndroidWebView = (): boolean => {
   const ua = navigator.userAgent || '';
   // Android WebView sets "wv" flag in the user agent
   return /Android.*wv/.test(ua) || typeof (window as any).Android !== 'undefined';
+};
+
+const shouldUseGoogleRedirect = (): boolean => {
+  const localPreviewHosts = new Set(['localhost', '127.0.0.1', '::1']);
+  return localPreviewHosts.has(window.location.hostname);
 };
 
 type AndroidBridge = {
@@ -75,6 +80,11 @@ const buildLocalGuestUser = (): User => {
 
 export const authService = {
   normalizeFirebaseUser: async (firebaseUser: FirebaseAuthUser): Promise<User> => {
+    // Force network if we're inside the Android app to prevent "offline" false positives
+    if (isAndroidWebView()) {
+      await enableNetwork(db).catch(() => {});
+    }
+
     if (firebaseUser.isAnonymous) {
       const guestSnapshot = await getDoc(doc(db, 'guests', firebaseUser.uid));
 
@@ -267,6 +277,11 @@ export const authService = {
 
         // Fallback when native bridge is not available in this Android build.
         throw Object.assign(new Error('Native Google sign-in bridge is unavailable.'), { code: 'auth/google-webview-not-supported' });
+      }
+
+      if (shouldUseGoogleRedirect()) {
+        await signInWithRedirect(auth, googleProvider);
+        throw Object.assign(new Error('Google redirect initiated.'), { code: 'auth/redirect-initiated' });
       }
 
       const result = await signInWithPopup(auth, googleProvider);
@@ -467,11 +482,11 @@ export const authService = {
       }
 
       try {
-        // Race Firestore normalization against a 6-second timeout
+        // Race Firestore normalization against a 20-second timeout for mobile stability
         const user = await Promise.race([
           authService.normalizeFirebaseUser(firebaseUser),
           new Promise<never>((_, reject) =>
-            setTimeout(() => reject(new Error('firestore-timeout')), 6000)
+            setTimeout(() => reject(new Error('firestore-timeout')), 20000)
           ),
         ]);
         onResolved(user);

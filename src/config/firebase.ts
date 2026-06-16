@@ -1,6 +1,6 @@
 import { initializeApp } from 'firebase/app';
 import { getAuth } from 'firebase/auth';
-import { getFirestore } from 'firebase/firestore';
+import { initializeFirestore, persistentLocalCache, persistentMultipleTabManager } from 'firebase/firestore';
 import { getFunctions } from 'firebase/functions';
 import { getRemoteConfig, fetchAndActivate, getValue } from 'firebase/remote-config';
 
@@ -15,7 +15,13 @@ const firebaseConfig = {
 
 export const app = initializeApp(firebaseConfig);
 export const auth = getAuth(app);
-export const db = getFirestore(app);
+
+// Use a more robust Firestore initialization for WebView
+// Disabling persistent Multiple Tab Manager as it can conflict in some WebViews
+export const db = initializeFirestore(app, {
+  localCache: persistentLocalCache({}),
+});
+
 export const functions = getFunctions(app);
 
 // ── Remote Config ─────────────────────────────────────────────────────────────

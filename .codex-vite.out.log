@@ -9,3 +9,28 @@ Port 4177 is in use, trying another one...
   [32m➜[39m  [1mLocal[22m:   [36mhttp://127.0.0.1:[1m4178[22m/[39m
 [2m[32m  ➜[39m[22m[2m  press [22m[1mh + enter[22m[2m to show help[22m
 [2m3:29:31 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mpage reload [39m[2mapp/src/main/assets/index.html[22m
+[2m3:42:13 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mpage reload [39m[2mapp/src/main/assets/index.html[22m
+[2m3:42:43 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mpage reload [39m[2mapp/src/main/assets/index.html[22m
+[2m3:46:13 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mpage reload [39m[2mbuild/reports/problems/problems-report.html[22m
+[2m3:48:36 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/app/App.tsx, /src/styles/index.css, /src/app/components/LoginScreen.tsx, /src/app/components/SettingsScreen.tsx[22m
+[2m3:58:30 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mpage reload [39m[2mapp/src/main/assets/index.html[22m
+[2m4:01:57 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mpage reload [39m[2mapp/build/intermediates/assets/debug/mergeDebugAssets/index.html[22m
+[2m4:01:57 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/app/App.tsx, /src/styles/index.css, /src/app/components/LoginScreen.tsx, /src/app/components/SettingsScreen.tsx[22m
+[2m4:04:44 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mpage reload [39m[2mapp/src/main/assets/index.html[22m
+[2m4:07:38 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles/index.css, /src/app/App.tsx, /src/app/components/LoginScreen.tsx, /src/app/components/SettingsScreen.tsx[22m
+[2m4:07:55 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/app/App.tsx, /src/styles/index.css, /src/app/components/LoginScreen.tsx, /src/app/components/SettingsScreen.tsx[22m
+[2m4:08:17 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/app/App.tsx, /src/styles/index.css, /src/app/components/LoginScreen.tsx, /src/app/components/SettingsScreen.tsx[22m
+[2m4:11:18 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mpage reload [39m[2mapp/src/main/assets/index.html[22m
+[2m4:11:19 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mpage reload [39m[2mapp/build/intermediates/assets/debug/mergeDebugAssets/index.html[22m
+[2m4:12:04 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mpage reload [39m[2mapp/build/intermediates/assets/debug/mergeDebugAssets/index.html[22m
+[2m4:12:44 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mpage reload [39m[2mapp/build/intermediates/assets/debug/mergeDebugAssets/index.html[22m
+[2m4:17:07 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mpage reload [39m[2mbuild/reports/problems/problems-report.html[22m
+[2m4:17:07 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mpage reload [39m[2mbuild/reports/problems/problems-report.html[22m
+[2m4:23:35 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/app/App.tsx, /src/styles/index.css, /src/app/components/LoginScreen.tsx, /src/app/components/SettingsScreen.tsx[22m
+[2m4:23:53 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles/index.css, /src/app/App.tsx, /src/app/components/LoginScreen.tsx, /src/app/components/SettingsScreen.tsx[22m
+[2m4:25:52 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mpage reload [39m[2mapp/src/main/assets/index.html[22m
+[2m4:28:00 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mpage reload [39m[2mapp/build/intermediates/assets/debug/mergeDebugAssets/index.html[22m
+[2m6:41:22 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mpage reload [39m[2mapp/build/intermediates/assets/debug/mergeDebugAssets/index.html[22m
+[2m6:42:01 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mpage reload [39m[2mapp/build/intermediates/assets/debug/mergeDebugAssets/index.html[22m
+[2m6:48:04 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mpage reload [39m[2mbuild/reports/problems/problems-report.html[22m
+[2m6:48:04 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mpage reload [39m[2mbuild/reports/problems/problems-report.html[22m
