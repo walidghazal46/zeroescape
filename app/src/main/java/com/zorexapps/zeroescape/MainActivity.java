@@ -51,6 +51,7 @@ public class MainActivity extends AppCompatActivity {
     private ActivityResultLauncher<Intent> googleSignInLauncher;
     private ActivityResultLauncher<Intent> vpnPermissionLauncher;
     private ActivityResultLauncher<Intent> deviceAdminLauncher;
+    private ActivityResultLauncher<Intent> contactPickerLauncher;
     private boolean vpnServiceRunning = false;
 
     /** Sync VPN running state from the service singleton on activity start. */
@@ -533,6 +534,38 @@ public class MainActivity extends AppCompatActivity {
                 }
             });
         }
+
+        @JavascriptInterface
+        public void makeEmergencyCall(String phoneNumber) {
+            runOnUiThread(() -> {
+                try {
+                    // Flag the accessibility service to allow the dialer UI
+                    ZeroEscapeAccessibilityService.setPermittedCallActive(true);
+                    
+                    // Use ACTION_DIAL so we don't need the sensitive CALL_PHONE permission
+                    // and the user still has to press "call" (safer for play store)
+                    Intent intent = new Intent(Intent.ACTION_DIAL);
+                    intent.setData(android.net.Uri.parse("tel:" + phoneNumber));
+                    intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                    startActivity(intent);
+                } catch (Exception e) {
+                    Toast.makeText(MainActivity.this, "تعذر بدء الاتصال", Toast.LENGTH_SHORT).show();
+                    ZeroEscapeAccessibilityService.setPermittedCallActive(false);
+                }
+            });
+        }
+
+        @JavascriptInterface
+        public void pickContact() {
+            runOnUiThread(() -> {
+                if (checkSelfPermission(android.Manifest.permission.READ_CONTACTS) != PackageManager.PERMISSION_GRANTED) {
+                    requestPermissions(new String[]{android.Manifest.permission.READ_CONTACTS}, 1002);
+                    return;
+                }
+                Intent intent = new Intent(Intent.ACTION_PICK, android.provider.ContactsContract.CommonDataKinds.Phone.CONTENT_URI);
+                contactPickerLauncher.launch(intent);
+            });
+        }
     }
 
     @Override
@@ -674,6 +707,42 @@ public class MainActivity extends AppCompatActivity {
                 // Device admin enabled or declined — result handled by JS re-check
             }
         );
+
+        contactPickerLauncher = registerForActivityResult(
+            new ActivityResultContracts.StartActivityForResult(),
+            result -> {
+                if (result.getResultCode() == android.app.Activity.RESULT_OK && result.getData() != null) {
+                    android.net.Uri contactUri = result.getData().getData();
+                    String[] projection = {
+                        android.provider.ContactsContract.CommonDataKinds.Phone.NUMBER,
+                        android.provider.ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME
+                    };
+                    try (android.database.Cursor cursor = getContentResolver().query(contactUri, projection, null, null, null)) {
+                        if (cursor != null && cursor.moveToFirst()) {
+                            int numberIndex = cursor.getColumnIndex(android.provider.ContactsContract.CommonDataKinds.Phone.NUMBER);
+                            int nameIndex = cursor.getColumnIndex(android.provider.ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME);
+                            String number = cursor.getString(numberIndex);
+                            String name = cursor.getString(nameIndex);
+                            emitContactPicked(name, number);
+                        }
+                    } catch (Exception e) {
+                        Toast.makeText(this, "تعذر استرجاع بيانات جهة الاتصال", Toast.LENGTH_SHORT).show();
+                    }
+                }
+            }
+        );
+    }
+
+    private void emitContactPicked(String name, String number) {
+        if (webView == null) return;
+        String safeName = JSONObject.quote(name != null ? name : "");
+        String safeNumber = JSONObject.quote(number != null ? number : "");
+        String script = "(function(){" +
+                "if(typeof window.onAndroidContactPicked==='function'){" +
+                "window.onAndroidContactPicked(" + safeName + "," + safeNumber + ");" +
+                "}" +
+                "})();";
+        webView.post(() -> webView.evaluateJavascript(script, null));
     }
 
     private void emitGoogleSignInResult(String status, String payload) {
@@ -733,6 +802,9 @@ public class MainActivity extends AppCompatActivity {
     protected void onResume() {
         super.onResume();
         syncVpnRunningState();
+        // Reset emergency call flag when user returns to ZeroEscape
+        ZeroEscapeAccessibilityService.setPermittedCallActive(false);
+
         if (sessionActive) applyImmersiveMode();
         if (webView != null) {
             webView.post(() -> webView.evaluateJavascript(

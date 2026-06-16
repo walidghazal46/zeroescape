@@ -4,6 +4,12 @@ import type { UserGoalType } from '../core/types';
 
 export type AppLanguage = 'ar' | 'en';
 
+export interface EmergencyContact {
+  id: string;
+  name: string;
+  phone: string;
+}
+
 interface PreferencesStore {
   language: AppLanguage;
   setLanguage: (language: AppLanguage) => void;
@@ -11,6 +17,8 @@ interface PreferencesStore {
   setUserGoal: (goal: UserGoalType) => void;
   onboardingCompleted: boolean;
   setOnboardingCompleted: (v: boolean) => void;
+  emergencyContacts: EmergencyContact[];
+  setEmergencyContacts: (contacts: EmergencyContact[]) => void;
 }
 
 export const usePreferencesStore = create<PreferencesStore>()(
@@ -22,6 +30,8 @@ export const usePreferencesStore = create<PreferencesStore>()(
       setUserGoal: (userGoal) => set({ userGoal }),
       onboardingCompleted: false,
       setOnboardingCompleted: (v) => set({ onboardingCompleted: v }),
+      emergencyContacts: [],
+      setEmergencyContacts: (emergencyContacts) => set({ emergencyContacts }),
     }),
     {
       name: 'zeroEscape_preferences',

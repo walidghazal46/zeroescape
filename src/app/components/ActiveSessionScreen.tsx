@@ -1,7 +1,8 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { BookOpen, Briefcase, Moon, Settings, AlertCircle, EyeOff, Zap, ShieldCheck, Globe } from 'lucide-react';
+import { BookOpen, Briefcase, Moon, Settings, AlertCircle, EyeOff, Zap, ShieldCheck, Globe, Phone, X } from 'lucide-react';
 import { useSessionStore } from '../../store/sessionStore';
+import { usePreferencesStore } from '../../store/preferencesStore';
 
 const modeIcons = {
   study: BookOpen,
@@ -48,6 +49,8 @@ export function ActiveSessionScreen() {
     return duration * 60;
   });
   const [showWarning, setShowWarning] = useState(false);
+  const [showEmergencyModal, setShowEmergencyModal] = useState(false);
+  const { emergencyContacts } = usePreferencesStore();
   const wakeLockRef = useRef<WakeLockSentinel | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -285,6 +288,16 @@ export function ActiveSessionScreen() {
           </div>
         </div>
 
+        {/* Emergency Call */}
+        <button
+          onClick={() => setShowEmergencyModal(true)}
+          className="w-full bg-emerald-500/10 border-2 border-emerald-500/30 text-emerald-400 rounded-2xl flex items-center justify-center gap-2 active:bg-emerald-500/20 transition"
+          style={{ height: 'var(--btn-h)' }}
+        >
+          <Phone className="icon-md" />
+          <span className="text-fluid-sm font-medium">اتصال طوارئ مسموح</span>
+        </button>
+
         {/* Emergency exit */}
         <button
           onClick={() => {
@@ -303,6 +316,58 @@ export function ActiveSessionScreen() {
           ZeroEscape No.1 — الجلسة محمية بالكامل
         </p>
       </div>
+
+      {/* ── Emergency Call Modal ─────────────────────────────────────────── */}
+      {showEmergencyModal && (
+        <div className="fixed inset-0 z-[10000] flex items-center justify-center px-6">
+          <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" onClick={() => setShowEmergencyModal(false)} />
+
+          <div className="relative w-full max-w-sm bg-slate-900 border border-slate-800 rounded-3xl overflow-hidden shadow-2xl">
+            <div className="p-6 border-b border-slate-800 flex items-center justify-between">
+              <button onClick={() => setShowEmergencyModal(false)} className="p-2 hover:bg-slate-800 rounded-full transition">
+                <X className="icon-sm text-slate-400" />
+              </button>
+              <h3 className="text-white font-bold">اتصال طوارئ</h3>
+            </div>
+
+            <div className="p-4 space-y-3">
+              {emergencyContacts.length === 0 ? (
+                <div className="py-8 text-center space-y-2">
+                  <div className="w-12 h-12 bg-slate-800 rounded-full flex items-center justify-center mx-auto text-slate-500">
+                    <Phone className="icon-md" />
+                  </div>
+                  <p className="text-slate-400 text-sm">لم يتم تعيين جهات اتصال طوارئ</p>
+                  <p className="text-slate-500 text-xs">يمكنك تعيينهم من الإعدادات قبل بدء الجلسة</p>
+                </div>
+              ) : (
+                emergencyContacts.map((contact) => (
+                  <button
+                    key={contact.id}
+                    onClick={() => {
+                      (window as any).Android?.makeEmergencyCall?.(contact.phone);
+                    }}
+                    className="w-full flex items-center justify-between p-4 bg-slate-800/50 hover:bg-slate-800 border border-slate-700/50 rounded-2xl transition group active:scale-[0.98]"
+                  >
+                    <div className="w-10 h-10 bg-emerald-500/20 rounded-xl flex items-center justify-center group-hover:bg-emerald-500/30 transition">
+                      <Phone className="icon-sm text-emerald-400" />
+                    </div>
+                    <div className="text-right flex-1 px-4">
+                      <p className="text-white font-semibold">{contact.name}</p>
+                      <p className="text-slate-500 text-xs tabular-nums">{contact.phone}</p>
+                    </div>
+                  </button>
+                ))
+              )}
+            </div>
+
+            <div className="p-4 bg-slate-950/50 text-center">
+              <p className="text-[10px] text-slate-500">
+                سيتم فتح لوحة الاتصال بالنظام — يرجى العودة للتطبيق بعد انتهاء المكالمة
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -25,6 +25,7 @@ public class ZeroEscapeAccessibilityService extends AccessibilityService {
     /** Singleton reference so MainActivity can query it. */
     private static ZeroEscapeAccessibilityService instance;
     private long lastBringToFrontAt = 0L;
+    private boolean isPermittedCallActive = false;
 
     public static ZeroEscapeAccessibilityService getInstance() {
         return instance;
@@ -32,6 +33,12 @@ public class ZeroEscapeAccessibilityService extends AccessibilityService {
 
     public static boolean isRunning() {
         return instance != null;
+    }
+
+    public static void setPermittedCallActive(boolean active) {
+        if (instance != null) {
+            instance.isPermittedCallActive = active;
+        }
     }
 
     @Override
@@ -67,6 +74,13 @@ public class ZeroEscapeAccessibilityService extends AccessibilityService {
             return;
         }
 
+        // Allow system Dialer / In-call UI if a permitted call is active
+        if (isPermittedCallActive) {
+            if (isDialerPackage(currentPackage)) {
+                return;
+            }
+        }
+
         // Pure framework events (package="android") carry no visible screen — skip them
         // to avoid re-entry loops during internal transitions.
         if ("android".equals(currentPackage)) {
@@ -100,6 +114,16 @@ public class ZeroEscapeAccessibilityService extends AccessibilityService {
     @Override
     public void onInterrupt() {
         // Required override — no action needed.
+    }
+
+    private boolean isDialerPackage(String pkg) {
+        if (pkg == null) return false;
+        return pkg.contains("dialer")
+                || pkg.contains("telecom")
+                || pkg.contains("incallui")
+                || pkg.contains("phone")
+                || pkg.equals("com.android.server.telecom")
+                || pkg.equals("com.google.android.packageinstaller");
     }
 
     @Override

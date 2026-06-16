@@ -1,11 +1,12 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ChevronRight, Shield, Bell, Globe, AlertCircle, Lock, CheckCircle2, Crown, ShieldCheck, CreditCard } from 'lucide-react';
+import { ChevronRight, Shield, Bell, Globe, AlertCircle, Lock, CheckCircle2, Crown, ShieldCheck, CreditCard, Phone, UserPlus, Trash2, Contact2 } from 'lucide-react';
 import { authService } from '../../services/authService';
 import { useAuthStore, ADMIN_EMAIL } from '../../store/authStore';
 import { usePreferencesStore } from '../../store/preferencesStore';
 import { useSessionStore } from '../../store/sessionStore';
 import { SUBSCRIPTION_PLANS } from '../../services/subscriptionService';
+import { v4 as uuidv4 } from 'uuid';
 
 function Toggle({ active, onChange }: { active: boolean; onChange: () => void }) {
   return (
@@ -21,13 +22,37 @@ function Toggle({ active, onChange }: { active: boolean; onChange: () => void })
 export function SettingsScreen() {
   const navigate = useNavigate();
   const { logout, user, setEmergencyPin, getAccountStatus, trialDaysLeft, subscriptionDaysLeft } = useAuthStore();
-  const { language, setLanguage } = usePreferencesStore();
+  const { language, setLanguage, emergencyContacts, setEmergencyContacts } = usePreferencesStore();
   const { activeSession } = useSessionStore();
   const [notifications, setNotifications] = useState(true);
   const [autoStart, setAutoStart] = useState(true);
   const [strictMode, setStrictMode] = useState(false);
   const [showLogoutDialog, setShowLogoutDialog] = useState(false);
   const [showSessionBlockDialog, setShowSessionBlockDialog] = useState(false);
+
+  // Emergency Contacts state
+  const [showContactsManager, setShowContactsManager] = useState(false);
+  const [contactName, setContactName] = useState('');
+  const [contactPhone, setContactPhone] = useState('');
+
+  // Register native contact picker callback
+  useEffect(() => {
+    (window as any).onAndroidContactPicked = (name: string, phone: string) => {
+      if (emergencyContacts.length >= 5) return;
+
+      const newContact = {
+        id: uuidv4(),
+        name: name,
+        phone: phone.replace(/\s/g, ''),
+      };
+
+      setEmergencyContacts([...emergencyContacts, newContact]);
+    };
+
+    return () => {
+      delete (window as any).onAndroidContactPicked;
+    };
+  }, [emergencyContacts, setEmergencyContacts]);
 
   // PIN setup state
   const [showPinSetup, setShowPinSetup] = useState(false);
@@ -73,6 +98,25 @@ export function SettingsScreen() {
     setNewPin('');
     setConfirmPin('');
     setTimeout(() => { setShowPinSetup(false); setPinSaved(false); }, 1500);
+  };
+
+  const handleAddContact = () => {
+    if (!contactName || !contactPhone) return;
+    if (emergencyContacts.length >= 5) return;
+
+    const newContact = {
+      id: uuidv4(),
+      name: contactName,
+      phone: contactPhone.replace(/\s/g, ''),
+    };
+
+    setEmergencyContacts([...emergencyContacts, newContact]);
+    setContactName('');
+    setContactPhone('');
+  };
+
+  const handleRemoveContact = (id: string) => {
+    setEmergencyContacts(emergencyContacts.filter(c => c.id !== id));
   };
 
   return (
@@ -306,6 +350,104 @@ export function SettingsScreen() {
                       حفظ الرمز
                     </button>
                   </>
+                )}
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* ── Emergency Contacts ───────────────────────────────────────────── */}
+        <div>
+          <p className="text-muted-foreground text-xs mb-3 px-1">جهات اتصال الطوارئ</p>
+          <div className="bg-card border border-border rounded-xl overflow-hidden">
+            <button
+              onClick={() => setShowContactsManager(!showContactsManager)}
+              className="w-full px-4 py-3.5 flex items-center gap-3 hover:bg-muted transition"
+            >
+              <div className={`w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0 ${emergencyContacts.length > 0 ? 'bg-emerald-500/20' : 'bg-slate-500/20'}`}>
+                <Phone className={`w-4 h-4 ${emergencyContacts.length > 0 ? 'text-emerald-400' : 'text-slate-400'}`} />
+              </div>
+              <div className="flex-1 text-right">
+                <h4 className="text-foreground text-sm font-medium">إدارة جهات الطوارئ</h4>
+                <p className="text-muted-foreground text-[10px] mt-0.5">
+                  {emergencyContacts.length > 0
+                    ? `تم تعيين ${emergencyContacts.length} من أصل 5`
+                    : 'يمكنك الاتصال بهم أثناء الجلسة المحمية'}
+                </p>
+              </div>
+              <ChevronRight className={`w-5 h-5 text-muted-foreground transition-transform ${showContactsManager ? 'rotate-90' : (isArabic ? 'rotate-180' : '')}`} />
+            </button>
+
+            {showContactsManager && (
+              <div className="px-4 pb-4 border-t border-border pt-4 space-y-4">
+                {/* List */}
+                <div className="space-y-2">
+                  {emergencyContacts.map((contact) => (
+                    <div key={contact.id} className="flex items-center justify-between p-3 bg-muted/50 rounded-xl border border-border/50">
+                      <button
+                        onClick={() => handleRemoveContact(contact.id)}
+                        className="p-2 text-red-400 hover:bg-red-500/10 rounded-lg transition"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                      <div className="text-right">
+                        <p className="text-sm font-medium text-foreground">{contact.name}</p>
+                        <p className="text-[10px] text-muted-foreground tabular-nums">{contact.phone}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Add Form */}
+                {emergencyContacts.length < 5 && (
+                  <div className="space-y-2 pt-2 border-t border-border/50">
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => (window as any).Android?.pickContact?.()}
+                        className="flex-1 h-11 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs font-bold transition active:scale-95 flex items-center justify-center gap-2"
+                      >
+                        <Contact2 className="w-4 h-4" />
+                        اختر من الهاتف
+                      </button>
+                    </div>
+
+                    <div className="relative py-2 flex items-center gap-3">
+                      <div className="flex-1 h-px bg-border/50" />
+                      <span className="text-[10px] text-muted-foreground">أو أدخل يدوياً</span>
+                      <div className="flex-1 h-px bg-border/50" />
+                    </div>
+
+                    <div className="flex gap-2">
+                      <input
+                        type="text"
+                        value={contactName}
+                        onChange={(e) => setContactName(e.target.value)}
+                        placeholder="الاسم"
+                        className="flex-1 h-10 bg-muted border border-border rounded-xl px-3 text-foreground text-xs focus:outline-none focus:border-blue-500 transition"
+                      />
+                      <input
+                        type="tel"
+                        value={contactPhone}
+                        onChange={(e) => setContactPhone(e.target.value)}
+                        placeholder="رقم الهاتف"
+                        className="flex-1 h-10 bg-muted border border-border rounded-xl px-3 text-foreground text-xs focus:outline-none focus:border-blue-500 transition text-right"
+                      />
+                    </div>
+                    <button
+                      onClick={handleAddContact}
+                      disabled={!contactName || !contactPhone}
+                      className="w-full h-10 rounded-xl bg-blue-500 text-white text-xs font-bold shadow-lg shadow-blue-500/20 disabled:opacity-50 disabled:shadow-none transition active:scale-95 flex items-center justify-center gap-2"
+                    >
+                      <UserPlus className="w-4 h-4" />
+                      إضافة يدوية
+                    </button>
+                  </div>
+                )}
+
+                {emergencyContacts.length >= 5 && (
+                  <p className="text-center text-[10px] text-amber-500 py-1">
+                    لقد وصلت للحد الأقصى (5 جهات اتصال)
+                  </p>
                 )}
               </div>
             )}
