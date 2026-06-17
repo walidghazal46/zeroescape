@@ -22,25 +22,22 @@ export interface SessionStore {
     startedAt: number;
     blockedAttempts: number;
     blockSocial: boolean;
-    webFilter: boolean;
   } | null;
 
   // Persisted settings
   blockedApps: Record<string, boolean>;
-  webProtectionEnabled: boolean;
   completedSessions: CompletedSession[];
   currentStreak: number;
   lastSessionDay: string | null;
 
   // Actions
-  startSession: (mode: string, durationMinutes: number, blockSocial: boolean, webFilter: boolean) => void;
+  startSession: (mode: string, durationMinutes: number, blockSocial: boolean) => void;
   incrementBlockedAttempt: () => void;
   finishSession: () => CompletedSession | null;
   abandonSession: () => void;
   setBlockedApp: (id: string, blocked: boolean) => void;
   blockAllApps: () => void;
   setBulkBlockedApps: (appIds: string[]) => void;
-  setWebProtection: (enabled: boolean) => void;
 
   // Computed helpers
   getTotalHoursThisWeek: () => number;
@@ -72,12 +69,11 @@ export const useSessionStore = create<SessionStore>()(
     (set, get) => ({
       activeSession: null,
       blockedApps: DEFAULT_BLOCKED_APPS,
-      webProtectionEnabled: true,
       completedSessions: [],
       currentStreak: 0,
       lastSessionDay: null,
 
-      startSession: (mode, durationMinutes, blockSocial, webFilter) => {
+      startSession: (mode, durationMinutes, blockSocial) => {
         set({
           activeSession: {
             sessionId: uuidv4(),
@@ -86,7 +82,6 @@ export const useSessionStore = create<SessionStore>()(
             startedAt: Date.now(),
             blockedAttempts: 0,
             blockSocial,
-            webFilter,
           },
         });
       },
@@ -163,10 +158,6 @@ export const useSessionStore = create<SessionStore>()(
         set({ blockedApps: allBlocked });
       },
 
-      setWebProtection: (enabled) => {
-        set({ webProtectionEnabled: enabled });
-      },
-
       getTotalHoursThisWeek: () => {
         const { completedSessions } = get();
         const weekAgo = Date.now() - 7 * 86400000;
@@ -207,7 +198,6 @@ export const useSessionStore = create<SessionStore>()(
       // Don't persist active session — if app closes mid-session it's abandoned
       partialize: (state) => ({
         blockedApps: state.blockedApps,
-        webProtectionEnabled: state.webProtectionEnabled,
         completedSessions: state.completedSessions,
         currentStreak: state.currentStreak,
         lastSessionDay: state.lastSessionDay,

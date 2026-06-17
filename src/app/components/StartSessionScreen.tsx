@@ -20,7 +20,7 @@ const modes = [
 
 export function StartSessionScreen() {
   const navigate = useNavigate();
-  const { startSession, webProtectionEnabled } = useSessionStore();
+  const { startSession } = useSessionStore();
   const { userGoal } = usePreferencesStore();
 
   const goalConfig = userGoal ? USER_GOALS[userGoal] : null;
@@ -30,7 +30,6 @@ export function StartSessionScreen() {
   const [selectedMode, setSelectedMode] = useState(defaultMode);
   const [duration, setDuration] = useState(defaultModeData.duration);
   const [blockSocial, setBlockSocial] = useState(true);
-  const [webFilter, setWebFilter] = useState(webProtectionEnabled);
 
   const selectedModeData = modes.find((m) => m.id === selectedMode) ?? modes[0];
 
@@ -50,7 +49,7 @@ export function StartSessionScreen() {
   };
 
   const handleStart = () => {
-    startSession(selectedMode, duration, blockSocial, webFilter);
+    startSession(selectedMode, duration, blockSocial);
     navigate('/active-session', { state: { mode: selectedMode, duration } });
   };
 
@@ -190,14 +189,6 @@ export function StartSessionScreen() {
               activeBg: 'bg-red-500/10 border-red-500/30',
               title: 'حظر تطبيقات التواصل',
               sub: 'انستقرام، تيك توك، سناب...',
-            },
-            {
-              on: webFilter,
-              toggle: () => setWebFilter(!webFilter),
-              color: 'bg-emerald-500',
-              activeBg: 'bg-emerald-500/10 border-emerald-500/30',
-              title: 'تصفية الويب',
-              sub: 'حظر المحتوى الضار',
             },
           ].map(({ on, toggle, color, activeBg, title, sub }) => (
             <button

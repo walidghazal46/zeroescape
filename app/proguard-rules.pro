@@ -39,9 +39,6 @@
 # ── Accessibility service ─────────────────────────────────────────────────────
 -keep class * extends android.accessibilityservice.AccessibilityService { *; }
 
-# ── VPN service ───────────────────────────────────────────────────────────────
--keep class * extends android.net.VpnService { *; }
-
 # ── Device admin ─────────────────────────────────────────────────────────────
 -keep class * extends android.app.admin.DeviceAdminReceiver { *; }
 

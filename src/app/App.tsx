@@ -17,7 +17,6 @@ const PermissionsScreen       = lazy(() => import('./components/PermissionsScree
 const HomeScreen              = lazy(() => import('./components/HomeScreen').then(m => ({ default: m.HomeScreen })));
 const StartSessionScreen      = lazy(() => import('./components/StartSessionScreen').then(m => ({ default: m.StartSessionScreen })));
 const BlockedAppsScreen       = lazy(() => import('./components/BlockedAppsScreen').then(m => ({ default: m.BlockedAppsScreen })));
-const WebProtectionScreen     = lazy(() => import('./components/WebProtectionScreen').then(m => ({ default: m.WebProtectionScreen })));
 const ActiveSessionScreen     = lazy(() => import('./components/ActiveSessionScreen').then(m => ({ default: m.ActiveSessionScreen })));
 const BlockInterceptScreen    = lazy(() => import('./components/BlockInterceptScreen').then(m => ({ default: m.BlockInterceptScreen })));
 const RestartRecoveryScreen   = lazy(() => import('./components/RestartRecoveryScreen').then(m => ({ default: m.RestartRecoveryScreen })));
@@ -335,7 +334,6 @@ function AppRoutes() {
       <Route path="/home" element={<ProtectedRoute><HomeScreen /></ProtectedRoute>} />
       <Route path="/start-session" element={<ProtectedRoute><StartSessionScreen /></ProtectedRoute>} />
       <Route path="/blocked-apps" element={<ProtectedRoute><BlockedAppsScreen /></ProtectedRoute>} />
-      <Route path="/web-protection" element={<ProtectedRoute><WebProtectionScreen /></ProtectedRoute>} />
       <Route path="/active-session" element={<ProtectedRoute><ActiveSessionScreen /></ProtectedRoute>} />
       <Route path="/block-intercept" element={<ProtectedRoute><BlockInterceptScreen /></ProtectedRoute>} />
       <Route path="/restart-recovery" element={<ProtectedRoute><RestartRecoveryScreen /></ProtectedRoute>} />

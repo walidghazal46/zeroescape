@@ -7,16 +7,12 @@ declare global {
     Android?: {
       openUsageSettings: () => void;
       openAccessibilitySettings: () => void;
-      openVpnSettings: () => void;
       openBootSettings: () => void;
       openDeviceAdminSettings: () => void;
       isUsageAccessGranted: () => boolean;
       isAccessibilityGranted: () => boolean;
       isDeviceAdminGranted: () => boolean;
-      isVpnPermissionGranted: () => boolean;
       isBatteryOptimizationIgnored: () => boolean;
-      startVpnBlocking: () => void;
-      stopVpnBlocking: () => void;
       startImmersiveMode: () => void;
       stopImmersiveMode: () => void;
       setSessionActive: (active: boolean) => void;
@@ -63,15 +59,6 @@ const buildPermissions = (): Permission[] => [
     open: () => window.Android?.openDeviceAdminSettings(),
     check: () => window.Android?.isDeviceAdminGranted() ?? false,
     required: true,
-  },
-  {
-    id: 'vpn',
-    icon: Shield,
-    title: 'حماية DNS / VPN',
-    description: 'لتصفية المواقع الضارة',
-    open: () => window.Android?.openVpnSettings(),
-    check: () => window.Android?.isVpnPermissionGranted() ?? false,
-    required: false,
   },
   {
     id: 'boot',

@@ -6,7 +6,7 @@ import android.content.Intent;
 import android.os.Build;
 
 /**
- * BootReceiver — starts ZeroEscapeVpnService (if a session was active before reboot)
+ * BootReceiver — re-launches the app if a session was active before reboot
  * and brings MainActivity back to foreground so the user sees the active session.
  *
  * Triggered by BOOT_COMPLETED and QUICKBOOT_POWERON (some manufacturers).

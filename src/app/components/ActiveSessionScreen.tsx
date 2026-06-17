@@ -82,12 +82,10 @@ export function ActiveSessionScreen() {
     }
   }, []);
 
-  // ── On mount: activate fullscreen + wake lock + start VPN blocking ──
+  // ── On mount: activate fullscreen + wake lock ──
   useEffect(() => {
     requestFullscreen();
     requestWakeLock();
-    // Start DNS-based VPN to block harmful sites during session
-    window.Android?.startVpnBlocking?.();
     // Enter true immersive mode (hides status bar + notification shade pull)
     window.Android?.startImmersiveMode?.();
     // Sync session state with native layer for onWindowFocusChanged
@@ -152,8 +150,6 @@ export function ActiveSessionScreen() {
       window.removeEventListener('beforeunload', handleBeforeUnload);
       releaseWakeLock();
       if (document.fullscreenElement) document.exitFullscreen().catch(() => {});
-      // Stop VPN blocking when session screen unmounts
-      window.Android?.stopVpnBlocking?.();
       // Restore normal UI
       window.Android?.stopImmersiveMode?.();
       // Tell native layer session is over
@@ -274,16 +270,6 @@ export function ActiveSessionScreen() {
             <div className="text-right flex-1 min-w-0">
               <p className="text-fluid-xs text-muted-foreground">التطبيقات</p>
               <p className="text-fluid-sm text-foreground font-medium">محظورة</p>
-            </div>
-          </div>
-
-          <div className="flex-1 bg-card rounded-2xl flex items-center gap-3 border border-emerald-500/20" style={{ padding: 'var(--sp-3) var(--sp-4)' }}>
-            <div className="bg-emerald-500/20 rounded-lg flex-shrink-0" style={{ padding: 'var(--sp-2)' }}>
-              <Globe className="icon-md text-emerald-400" />
-            </div>
-            <div className="text-right flex-1 min-w-0">
-              <p className="text-fluid-xs text-muted-foreground">الويب</p>
-              <p className="text-fluid-sm text-foreground font-medium">محمي</p>
             </div>
           </div>
         </div>

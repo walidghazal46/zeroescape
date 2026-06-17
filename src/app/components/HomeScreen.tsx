@@ -435,16 +435,7 @@ export function HomeScreen() {
           badge={blockedCount > 0 ? String(blockedCount) : undefined}
           badgeColor="#f03e3e"
           onClick={() => navigate('/blocked-apps')}
-        />
-        <FeatureCard
-          icon={<Shield className="icon-sm" style={{ color: '#10d98c' }} />}
-          title={isArabic ? 'حماية الويب' : 'Web Protection'}
-          subtitle={isArabic ? 'DNS نشط' : 'DNS Active'}
-          iconBg="rgba(16,217,140,0.15)"
-          iconColor="#10d98c"
-          badge={isArabic ? 'نشط' : 'ON'}
-          badgeColor="#10d98c"
-          onClick={() => navigate('/web-protection')}
+          fullWidth
         />
         <FeatureCard
           icon={<Calendar className="icon-sm" style={{ color: '#4caf7d' }} />}

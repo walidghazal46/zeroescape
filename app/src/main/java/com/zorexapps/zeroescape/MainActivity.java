@@ -9,7 +9,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
-import android.net.VpnService;
 import android.os.Build;
 import android.os.Bundle;
 import android.provider.Settings;
@@ -49,15 +48,9 @@ public class MainActivity extends AppCompatActivity {
     private ComponentName adminComponent;
     private GoogleSignInClient googleSignInClient;
     private ActivityResultLauncher<Intent> googleSignInLauncher;
-    private ActivityResultLauncher<Intent> vpnPermissionLauncher;
     private ActivityResultLauncher<Intent> deviceAdminLauncher;
     private ActivityResultLauncher<Intent> contactPickerLauncher;
-    private boolean vpnServiceRunning = false;
 
-    /** Sync VPN running state from the service singleton on activity start. */
-    private void syncVpnRunningState() {
-        vpnServiceRunning = ZeroEscapeVpnService.isRunning();
-    }
     private boolean sessionActive = false;
 
     public static boolean isProtectedSessionActive(Context context) {
@@ -258,48 +251,6 @@ public class MainActivity extends AppCompatActivity {
         @JavascriptInterface
         public void openDeviceAdminSettings() {
             runOnUiThread(() -> {
-                try {
-                    Intent intent = new Intent(DevicePolicyManager.ACTION_ADD_DEVICE_ADMIN);
-                    intent.putExtra(DevicePolicyManager.EXTRA_DEVICE_ADMIN, adminComponent);
-                    intent.putExtra(DevicePolicyManager.EXTRA_ADD_EXPLANATION,
-                        "ZeroEscape يحتاج صلاحيات مدير الجهاز للحماية من الحذف غير المصرح به");
-                    deviceAdminLauncher.launch(intent);
-                } catch (Exception e) {
-                    Toast.makeText(MainActivity.this,
-                        "تعذّر فتح إعدادات مدير الجهاز", Toast.LENGTH_SHORT).show();
-                }
-            });
-        }
-
-        @JavascriptInterface
-        public void openVpnSettings() {
-            runOnUiThread(() -> {
-                try {
-                    // Request VPN permission for this app via proper ActivityResult
-                    Intent vpnIntent = VpnService.prepare(MainActivity.this);
-                    if (vpnIntent != null) {
-                        vpnPermissionLauncher.launch(vpnIntent);
-                    } else {
-                        // Already granted — open system VPN settings page
-                        startActivity(new Intent(Settings.ACTION_VPN_SETTINGS)
-                            .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK));
-                    }
-                } catch (Exception e) {
-                    // Fallback: open VPN settings directly
-                    try {
-                        startActivity(new Intent(Settings.ACTION_VPN_SETTINGS)
-                            .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK));
-                    } catch (Exception e2) {
-                        startActivity(new Intent(Settings.ACTION_WIRELESS_SETTINGS)
-                            .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK));
-                    }
-                }
-            });
-        }
-
-        @JavascriptInterface
-        public void openBootSettings() {
-            runOnUiThread(() -> {
                 String pkg = getPackageName();
                 android.net.Uri pkgUri = android.net.Uri.parse("package:" + pkg);
 
@@ -412,50 +363,6 @@ public class MainActivity extends AppCompatActivity {
         @JavascriptInterface
         public boolean isDeviceAdminGranted() {
             return devicePolicyManager.isAdminActive(adminComponent);
-        }
-
-        /** Returns true if the user has already granted VPN permission to this app. */
-        @JavascriptInterface
-        public boolean isVpnPermissionGranted() {
-            return VpnService.prepare(MainActivity.this) == null;
-        }
-
-        /** Returns true if ZeroEscapeVpnService is currently running. */
-        @JavascriptInterface
-        public boolean isVpnActive() {
-            return vpnServiceRunning;
-        }
-
-        /** Starts the DNS-blocking VPN (call at session start). */
-        @JavascriptInterface
-        public void startVpnBlocking() {
-            runOnUiThread(() -> {
-                Intent vpnPermIntent = VpnService.prepare(MainActivity.this);
-                if (vpnPermIntent != null) {
-                    // Permission not yet granted — request it first
-                    vpnPermissionLauncher.launch(vpnPermIntent);
-                    return;
-                }
-                Intent service = new Intent(MainActivity.this, ZeroEscapeVpnService.class);
-                service.setAction(ZeroEscapeVpnService.ACTION_START);
-                if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
-                    startForegroundService(service);
-                } else {
-                    startService(service);
-                }
-                vpnServiceRunning = true;
-            });
-        }
-
-        /** Stops the DNS-blocking VPN (call at session end). */
-        @JavascriptInterface
-        public void stopVpnBlocking() {
-            runOnUiThread(() -> {
-                Intent service = new Intent(MainActivity.this, ZeroEscapeVpnService.class);
-                service.setAction(ZeroEscapeVpnService.ACTION_STOP);
-                startService(service);
-                vpnServiceRunning = false;
-            });
         }
 
         /**
@@ -684,14 +591,6 @@ public class MainActivity extends AppCompatActivity {
             }
         );
 
-        // Launcher for VPN permission dialog
-        vpnPermissionLauncher = registerForActivityResult(
-            new ActivityResultContracts.StartActivityForResult(),
-            result -> {
-                // VPN permission granted or denied — result handled by JS re-check
-            }
-        );
-
         // Launcher for Device Admin activation dialog
         deviceAdminLauncher = registerForActivityResult(
             new ActivityResultContracts.StartActivityForResult(),
@@ -793,7 +692,6 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        syncVpnRunningState();
         // Reset emergency call flag when user returns to ZeroEscape
         ZeroEscapeAccessibilityService.setPermittedCallActive(false);
 
