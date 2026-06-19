@@ -12,7 +12,7 @@
  */
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ChevronRight, Check, Crown, Clock, ArrowRight, Copy, Mail, Settings } from 'lucide-react';
+import { ChevronRight, Check, Crown, Clock, ArrowRight, Copy, Mail, Settings, MessageCircle } from 'lucide-react';
 import { useAuthStore } from '../../store/authStore';
 import { usePreferencesStore } from '../../store/preferencesStore';
 import { useSubscriptionStore } from '../../store/subscriptionStore';
@@ -24,7 +24,7 @@ import {
 } from '../../services/subscriptionService';
 import type { SubscriptionPlan } from '../../store/authStore';
 
-const ADMIN_EMAIL_CONTACT = 'walidghazal46@gmail.com';
+const WHATSAPP_NUMBER = '201064463650';
 
 type Step = 'plans' | 'manual_form' | 'manual_confirm' | 'pending';
 
@@ -88,13 +88,16 @@ export function SubscriptionScreen() {
     setTimeout(() => setCopied(false), 2000);
   };
 
-  const openMailComposer = (order: PaymentOrder) => {
+  const openWhatsApp = (order: PaymentOrder) => {
     const planDef = SUBSCRIPTION_PLANS.find(p => p.id === order.plan)!;
-    const subject = encodeURIComponent(`[ZeroEscape] طلب اشتراك - ${order.orderId}`);
-    const body = encodeURIComponent(
-      `السلام عليكم،\n\nأريد الاشتراك في تطبيق ZeroEscape.\n\nرقم الطلب: ${order.orderId}\nالباقة: ${planDef.nameAr} (${planDef.price} USD)\nالبريد: ${order.email}\nمعرف الجهاز: ${order.deviceId}\nتاريخ الطلب: ${new Date(order.createdAt).toLocaleString('ar-EG')}\nطريقة الدفع: ${order.paymentMethod}\n\nسأرسل إثبات الدفع في أقرب وقت.\n\nشكراً`
+    const text = encodeURIComponent(
+      `السلام عليكم، أريد تفعيل اشتراك في ZeroEscape.\n\n` +
+      `رقم الطلب: ${order.orderId}\n` +
+      `الباقة: ${planDef.nameAr}\n` +
+      `البريد: ${order.email}\n` +
+      `معرف الجهاز: ${order.deviceId}`
     );
-    window.location.href = `mailto:${ADMIN_EMAIL_CONTACT}?subject=${subject}&body=${body}`;
+    window.location.href = `https://wa.me/${WHATSAPP_NUMBER}?text=${text}`;
   };
 
   return (
@@ -350,36 +353,24 @@ export function SubscriptionScreen() {
             </div>
 
             {/* Instructions */}
-            <div className="bg-blue-500/10 border border-blue-500/20 rounded-2xl p-4 space-y-3">
-              <p className="text-blue-300 font-semibold text-sm">
-                {ar ? '📋 تعليمات الدفع' : '📋 Payment Instructions'}
+            <div className="bg-emerald-500/10 border border-emerald-500/20 rounded-2xl p-4 space-y-3">
+              <p className="text-emerald-400 font-semibold text-sm">
+                {ar ? '✅ تفعيل الاشتراك عبر واتساب' : '✅ Activate via WhatsApp'}
               </p>
-              <ol className="space-y-2 text-foreground text-sm list-decimal list-inside">
-                <li>
-                  {ar
-                    ? `أرسل ${plan.price} USD عبر ${createdOrder.paymentMethod === 'instapay' ? 'InstaPay' : 'كاش / حوالة'}`
-                    : `Send $${plan.price} USD via ${createdOrder.paymentMethod === 'instapay' ? 'InstaPay' : 'Cash / Transfer'}`}
-                </li>
-                <li>
-                  {ar ? 'أرسل إثبات الدفع (صورة) مع رقم الطلب' : 'Send payment proof (screenshot) with the order ID'}
-                </li>
-                <li>
-                  {ar ? 'راسل الأدمن على البريد أدناه' : 'Email the admin at the address below'}
-                </li>
-              </ol>
-              <div className="flex items-center gap-2 bg-card rounded-xl px-3 py-2">
-                <Mail className="w-4 h-4 text-blue-400 flex-shrink-0" />
-                <span className="text-blue-300 text-sm font-mono flex-1">{ADMIN_EMAIL_CONTACT}</span>
-              </div>
+              <p className="text-foreground text-sm leading-relaxed">
+                {ar
+                  ? 'تم إنشاء طلبك. اضغط على الزر أدناه لمراسلة الإدارة عبر واتساب لتأكيد الدفع وتفعيل حسابك فوراً.'
+                  : 'Your order is created. Tap the button below to message us on WhatsApp to confirm payment and activate your account.'}
+              </p>
             </div>
 
-            {/* Send email */}
+            {/* Send WhatsApp */}
             <button
-              onClick={() => openMailComposer(createdOrder)}
-              className="w-full h-12 rounded-2xl bg-blue-600 text-white font-bold flex items-center justify-center gap-2 hover:bg-blue-500 transition"
+              onClick={() => openWhatsApp(createdOrder)}
+              className="w-full h-14 rounded-2xl bg-[#25D366] text-white font-bold flex items-center justify-center gap-2 hover:bg-[#20bd5a] shadow-lg shadow-emerald-500/20 transition active:scale-95"
             >
-              <Mail className="w-5 h-5" />
-              {ar ? 'إرسال البيانات بالبريد' : 'Send Details by Email'}
+              <MessageCircle className="w-6 h-6 fill-current" />
+              {ar ? 'تفعيل عبر واتساب الآن' : 'Activate via WhatsApp'}
             </button>
 
             <button

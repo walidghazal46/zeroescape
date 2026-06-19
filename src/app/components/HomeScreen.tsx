@@ -238,50 +238,81 @@ export function HomeScreen() {
 
   return (
     <ScreenContainer scrollable>
+      {/* ── Background Accent ── */}
+      <div className="absolute top-0 inset-x-0 h-64 bg-gradient-to-b from-emerald-500/10 to-transparent pointer-events-none" />
+
       {/* ── Header ── */}
       <div
-        className="flex items-center justify-between"
-        style={{ marginBottom: 'var(--sp-5)' }}
+        className="relative flex items-center justify-between"
+        style={{ marginBottom: 'var(--sp-6)' }}
       >
         <div className="flex-1 min-w-0">
+          <p className="text-[10px] text-emerald-500 font-bold tracking-widest uppercase mb-1">ZeroEscape No.1</p>
           <h1
-            className="font-bold leading-tight truncate"
-            style={{ fontSize: 'var(--text-xl)', color: '#1c2e2b' }}
+            className="font-black leading-tight truncate"
+            style={{ fontSize: '1.75rem', color: '#1c2e2b' }}
           >
             {user?.name ? (
               <>
                 {isArabic ? 'مرحباً، ' : 'Welcome, '}
-                <span style={{ color: '#15b8a6' }}>{user.name}</span>
+                <span className="text-emerald-600">{user.name}</span>
               </>
             ) : (
               greeting
             )}
           </h1>
-          {goalConfig && (
-            <p
-              className="mt-0.5 truncate"
-              style={{ fontSize: 'var(--text-xs)', color: '#6b8079' }}
-            >
-              {goalConfig.emoji} {goalConfig.labelAr}
-            </p>
-          )}
         </div>
-        <button
-          onClick={() => navigate('/settings')}
-          className="flex-shrink-0 rounded-xl flex items-center justify-center transition ze-card-hover"
-          style={{
-            width: 'var(--btn-h)',
-            height: 'var(--btn-h)',
-            background: '#ffffff',
-            border: '1.5px solid rgba(21,184,166,0.14)',
-            marginRight: 'var(--sp-3)',
-          }}
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => navigate('/statistics')}
+            className="w-11 h-11 rounded-2xl bg-white shadow-sm border border-emerald-500/10 flex items-center justify-center transition active:scale-95"
+          >
+            <BarChart3 className="w-5 h-5 text-emerald-600" />
+          </button>
+          <button
+            onClick={() => navigate('/settings')}
+            className="w-11 h-11 rounded-2xl bg-white shadow-sm border border-emerald-500/10 flex items-center justify-center transition active:scale-95"
+          >
+            <Settings className="w-5 h-5 text-slate-400" />
+          </button>
+        </div>
+      </div>
+
+      {/* ── Main Power Button (BlockerHero Style) ── */}
+      <div className="flex flex-col items-center justify-center py-4 mb-8">
+        <motion.button
+          whileHover={{ scale: 1.02 }}
+          whileTap={{ scale: 0.95 }}
+          onClick={() => activeSession ? navigate('/active-session') : navigate('/start-session')}
+          className="relative w-48 h-48 flex items-center justify-center"
         >
-          <Settings
-            className="icon-md"
-            style={{ color: '#6b8079' }}
-          />
-        </button>
+          {/* Pulsing ring */}
+          <div className={`absolute inset-0 rounded-full animate-ping opacity-20 ${activeSession ? 'bg-red-500' : 'bg-emerald-500'}`} style={{ animationDuration: '3s' }} />
+
+          {/* Main Circle */}
+          <div className={`relative w-40 h-40 rounded-full shadow-2xl flex flex-col items-center justify-center border-8 ${
+            activeSession
+              ? 'bg-gradient-to-br from-red-500 to-rose-600 border-rose-400/30'
+              : 'bg-gradient-to-br from-emerald-500 to-teal-600 border-emerald-400/30'
+          }`}
+          style={{ boxShadow: activeSession ? '0 20px 40px rgba(244,63,94,0.3)' : '0 20px 40px rgba(16,185,129,0.3)' }}
+          >
+            {activeSession ? (
+              <Zap className="w-12 h-12 text-white fill-current mb-1" />
+            ) : (
+              <Play className="w-12 h-12 text-white fill-current ml-1 mb-1" />
+            )}
+            <span className="text-white font-black text-lg">
+              {activeSession ? (isArabic ? 'نشط' : 'ACTIVE') : (isArabic ? 'ابدأ' : 'START')}
+            </span>
+          </div>
+        </motion.button>
+
+        <p className="mt-6 text-slate-500 text-sm font-medium">
+          {activeSession
+            ? (isArabic ? 'جلسة التركيز قيد التشغيل' : 'Focus session is running')
+            : (isArabic ? 'اضغط للبدء بالحماية' : 'Tap to start protection')}
+        </p>
       </div>
 
       {/* ── Stats row ── */}
@@ -329,98 +360,6 @@ export function HomeScreen() {
         </div>
       </div>
 
-      {/* ── Session card ── */}
-      {activeSession ? (
-        <motion.button
-          whileTap={{ scale: 0.975 }}
-          onClick={() => navigate('/active-session')}
-          className="w-full rounded-2xl flex items-center gap-3 transition"
-          style={{
-            padding: 'var(--sp-4)',
-            marginBottom: 'var(--sp-4)',
-            background: 'linear-gradient(135deg, rgba(16,217,140,0.14) 0%, rgba(16,185,129,0.08) 100%)',
-            border: '1.5px solid rgba(16,217,140,0.3)',
-          }}
-        >
-          <div
-            className="rounded-full animate-pulse flex-shrink-0"
-            style={{ width: 10, height: 10, background: '#10d98c' }}
-          />
-          <div className="flex-1 text-right">
-            <p
-              className="font-semibold"
-              style={{ fontSize: 'var(--text-sm)', color: '#10d98c' }}
-            >
-              {isArabic ? 'جلسة نشطة الآن' : 'Session Active'}
-            </p>
-            <p style={{ fontSize: 'var(--text-xs)', color: '#6b8079', textTransform: 'capitalize' }}>
-              {activeSession.mode.replace('_', ' ')}
-            </p>
-          </div>
-          <span style={{ fontSize: 'var(--text-xs)', color: '#10d98c' }}>
-            {isArabic ? 'انتقل ↩' : 'Resume ↩'}
-          </span>
-        </motion.button>
-      ) : (
-        <div
-          className="rounded-2xl relative overflow-hidden"
-          style={{
-            padding: 'var(--sp-4)',
-            marginBottom: 'var(--sp-4)',
-            background: 'linear-gradient(135deg, rgba(76,175,125,0.2) 0%, rgba(76,175,125,0.12) 100%)',
-            border: '1.5px solid rgba(76,175,125,0.25)',
-          }}
-        >
-          {/* Gold accent line */}
-          <div
-            className="absolute top-0 right-0 w-1 h-full rounded-r-2xl"
-            style={{ background: 'linear-gradient(180deg, #15b8a6, #0d9488)' }}
-          />
-          <div className="flex items-center gap-3" style={{ marginBottom: 'var(--sp-3)' }}>
-            <div
-              className="rounded-xl flex items-center justify-center flex-shrink-0"
-              style={{
-                width: 'var(--sp-10)',
-                height: 'var(--sp-10)',
-                background: 'rgba(76,175,125,0.2)',
-                border: '1px solid rgba(76,175,125,0.3)',
-              }}
-            >
-              <Zap className="icon-md" style={{ color: '#4caf7d' }} />
-            </div>
-            <div className="flex-1 text-right">
-              <h2
-                className="font-bold"
-                style={{ fontSize: 'var(--text-sm)', color: '#1c2e2b' }}
-              >
-                {isArabic ? 'جاهز للتركيز؟' : 'Ready to Focus?'}
-              </h2>
-              <p style={{ fontSize: 'var(--text-xs)', color: '#6b8079' }}>
-                {isArabic ? 'ابدأ جلسة تركيز الآن' : 'Start a focus session now'}
-              </p>
-            </div>
-          </div>
-          <motion.button
-            whileTap={{ scale: 0.97 }}
-            onClick={() => navigate('/start-session')}
-            className="btn-primary"
-            style={{
-              background: 'linear-gradient(135deg, #15b8a6, #0d9488)',
-              color: '#ffffff',
-              fontWeight: 700,
-              boxShadow: '0 6px 24px rgba(21,184,166,0.28)',
-            }}
-          >
-            <Play
-              style={{ width: 'var(--icon-sm)', height: 'var(--icon-sm)', marginLeft: 8, fill: '#ffffff' }}
-            />
-            <span style={{ fontSize: 'var(--text-sm)' }}>
-              {isArabic ? 'ابدأ جلسة تركيز' : 'Start Focus Session'}
-            </span>
-          </motion.button>
-        </div>
-      )}
-
       {/* ── Feature cards grid ── */}
       <div
         className="grid grid-cols-2 gap-[var(--sp-3)]"
@@ -438,6 +377,22 @@ export function HomeScreen() {
           fullWidth
         />
         <FeatureCard
+          icon={<Calendar className="icon-sm" style={{ color: '#4caf7d' }} />}
+          title={isArabic ? 'الجدولة التلقائية' : 'Auto Schedule'}
+          subtitle={
+            schedules.filter((s) => s.enabled).length > 0
+              ? nextSchedule
+                ? (isArabic ? `القادمة: ${nextSchedule.firesAt.toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' })}` : `Next: ${nextSchedule.firesAt.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}`)
+                : (isArabic ? `${schedules.filter((s) => s.enabled).length} جدولة` : `${schedules.filter((s) => s.enabled).length} active`)
+              : (isArabic ? 'أضف جدولة' : 'Add schedule')
+          }
+          iconBg="rgba(76,175,125,0.15)"
+          iconColor="#4caf7d"
+          fullWidth
+          onClick={() => navigate('/schedule')}
+        />
+      </div>
+reCard
           icon={<Calendar className="icon-sm" style={{ color: '#4caf7d' }} />}
           title={isArabic ? 'الجدولة التلقائية' : 'Auto Schedule'}
           subtitle={
