@@ -392,22 +392,6 @@ export function HomeScreen() {
           onClick={() => navigate('/schedule')}
         />
       </div>
-reCard
-          icon={<Calendar className="icon-sm" style={{ color: '#4caf7d' }} />}
-          title={isArabic ? 'الجدولة التلقائية' : 'Auto Schedule'}
-          subtitle={
-            schedules.filter((s) => s.enabled).length > 0
-              ? nextSchedule
-                ? (isArabic ? `القادمة: ${nextSchedule.firesAt.toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' })}` : `Next: ${nextSchedule.firesAt.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}`)
-                : (isArabic ? `${schedules.filter((s) => s.enabled).length} جدولة` : `${schedules.filter((s) => s.enabled).length} active`)
-              : (isArabic ? 'أضف جدولة' : 'Add schedule')
-          }
-          iconBg="rgba(76,175,125,0.15)"
-          iconColor="#4caf7d"
-          fullWidth
-          onClick={() => navigate('/schedule')}
-        />
-      </div>
 
       {/* ── Break attempts warning ── */}
       {weeklyBreaks > 0 && (
