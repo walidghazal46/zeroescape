@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate, useNavigate, useLocation, Link } from 'react-router-dom';
 import { lazy, Suspense } from 'react';
 import { useAuthStore } from '../store/authStore';
 import { usePreferencesStore } from '../store/preferencesStore';
@@ -7,6 +7,7 @@ import { useEffect } from 'react';
 import type { ReactNode } from 'react';
 import { authService } from '../services/authService';
 import { useAndroidBack } from '../hooks/useAndroidBack';
+import { Home, Calendar, Shield, User, Zap, Play } from 'lucide-react';
 
 // ── Lazy-loaded screens (code-split per route) ────────────────────────────────
 const SplashScreen            = lazy(() => import('./components/SplashScreen').then(m => ({ default: m.SplashScreen })));
@@ -272,8 +273,12 @@ export default function App() {
 function AppRoutes() {
   const { showExitDialog, dismissExitDialog, confirmExit } = useAndroidBack();
   const { user } = useAuthStore();
+  const { activeSession } = useSessionStore();
   const navigate = useNavigate();
   const location = useLocation();
+
+  const isTabRoute = ['/home', '/schedule', '/blocked-apps', '/settings'].includes(location.pathname);
+  const showTabs = isTabRoute && !activeSession;
 
   // Global session recovery: when the native layer calls onAndroidResume (app returns
   // from background) and a session is active but we're not on the session screen,
@@ -350,6 +355,38 @@ function AppRoutes() {
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
     </Suspense>
+
+    {/* ── Bottom Navigation Tabs ────────────────────────────────────────── */}
+    {showTabs && (
+      <div className="fixed bottom-0 left-0 right-0 z-[50] flex items-center justify-around bg-slate-900/80 backdrop-blur-xl border-t border-white/10 px-4"
+        style={{ paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 12px)', paddingTop: '12px' }}
+      >
+        {[
+          { path: '/home', icon: Home, label: 'الرئيسية' },
+          { path: '/schedule', icon: Calendar, label: 'الجدولة' },
+          { path: '/blocked-apps', icon: Shield, label: 'التطبيقات' },
+          { path: '/settings', icon: User, label: 'حسابي' },
+        ].map((tab) => {
+          const isActive = location.pathname === tab.path;
+          const Icon = tab.icon;
+          return (
+            <Link
+              key={tab.path}
+              to={tab.path}
+              className={`flex flex-col items-center gap-1 transition-all duration-300 ${
+                isActive ? 'text-emerald-400 scale-110' : 'text-slate-500 hover:text-slate-300'
+              }`}
+            >
+              <div className={`p-2 rounded-xl transition-colors ${isActive ? 'bg-emerald-500/10' : ''}`}>
+                <Icon className="w-6 h-6" />
+              </div>
+              <span className="text-[10px] font-bold">{tab.label}</span>
+            </Link>
+          );
+        })}
+      </div>
+    )}
+
     {/* ── In-app exit confirmation dialog ─────────────────────────────── */}
     {showExitDialog && (
       <div

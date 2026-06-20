@@ -28,17 +28,11 @@ export function BlockedAppsScreen() {
       className="min-h-screen bg-background flex flex-col px-4 overflow-y-auto hide-scrollbar"
       style={{
         paddingTop: `calc(env(safe-area-inset-top, 0px) + 20px)`,
-        paddingBottom: `calc(env(safe-area-inset-bottom, 0px) + 24px)`,
+        paddingBottom: `calc(env(safe-area-inset-bottom, 0px) + 100px)`,
       }}
     >
       <div className="flex items-center gap-3 mb-6">
-        <button
-          onClick={() => navigate('/home')}
-          className="w-9 h-9 flex items-center justify-center text-muted-foreground hover:text-foreground transition"
-        >
-          <ChevronRight className="w-6 h-6" />
-        </button>
-        <div className="flex-1">
+        <div className="flex-1 text-right">
           <h1 className="text-foreground text-2xl font-bold">التطبيقات المحظورة</h1>
           <p className="text-muted-foreground text-sm">{blockedCount} تطبيق محظور</p>
         </div>

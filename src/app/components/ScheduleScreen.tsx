@@ -160,26 +160,20 @@ export function ScheduleScreen() {
       dir="rtl"
       style={{
         paddingTop: `calc(env(safe-area-inset-top, 0px) + 16px)`,
-        paddingBottom: `calc(env(safe-area-inset-bottom, 0px) + 24px)`,
+        paddingBottom: `calc(env(safe-area-inset-bottom, 0px) + 100px)`,
       }}
     >
       {/* ── Header ─────────────────────────────────────────────────────────── */}
       <div className="flex items-center gap-3 px-4 mb-5">
-        <button
-          onClick={() => navigate('/home')}
-          className="w-9 h-9 bg-card border border-border rounded-xl flex items-center justify-center"
-        >
-          <ChevronLeft className="w-5 h-5 text-muted-foreground rotate-180" />
-        </button>
-        <div className="flex-1">
-          <h1 className="text-foreground font-bold text-lg">الجدولة التلقائية</h1>
+        <div className="flex-1 text-right">
+          <h1 className="text-foreground font-bold text-2xl">الجدولة التلقائية</h1>
           <p className="text-muted-foreground text-xs">جلسات تبدأ وحدها في الأوقات المحددة</p>
         </div>
         <button
           onClick={openNew}
-          className="w-9 h-9 bg-blue-600 rounded-xl flex items-center justify-center shadow-lg shadow-blue-600/30"
+          className="w-11 h-11 bg-blue-600 rounded-2xl flex items-center justify-center shadow-lg shadow-blue-600/30"
         >
-          <Plus className="w-5 h-5 text-white" />
+          <Plus className="w-6 h-6 text-white" />
         </button>
       </div>
 
