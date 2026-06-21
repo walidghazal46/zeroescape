@@ -242,12 +242,26 @@ public class MainActivity extends AppCompatActivity {
         @JavascriptInterface
         public void openDeviceAdminSettings() {
             runOnUiThread(() -> {
+                try {
+                    Intent intent = new Intent(DevicePolicyManager.ACTION_ADD_DEVICE_ADMIN);
+                    intent.putExtra(DevicePolicyManager.EXTRA_DEVICE_ADMIN, adminComponent);
+                    intent.putExtra(DevicePolicyManager.EXTRA_ADD_EXPLANATION,
+                        "ZeroEscape يحتاج صلاحيات مدير الجهاز للحماية من الحذف غير المصرح به");
+                    deviceAdminLauncher.launch(intent);
+                } catch (Exception e) {
+                    Toast.makeText(MainActivity.this,
+                        "تعذّر فتح إعدادات مدير الجهاز", Toast.LENGTH_SHORT).show();
+                }
+            });
+        }
+
+        @JavascriptInterface
+        public void openBootSettings() {
+            runOnUiThread(() -> {
                 String pkg = getPackageName();
                 android.net.Uri pkgUri = android.net.Uri.parse("package:" + pkg);
 
                 // ── Step 1: Try direct battery optimisation exemption dialog ──────────
-                // This works on ALL Android versions (stock + custom ROMs) and is the
-                // correct modern approach. Requires REQUEST_IGNORE_BATTERY_OPTIMIZATIONS.
                 try {
                     android.os.PowerManager pm =
                         (android.os.PowerManager) getSystemService(POWER_SERVICE);
@@ -258,7 +272,6 @@ public class MainActivity extends AppCompatActivity {
                         startActivity(batteryIntent);
                         return;
                     }
-                    // Already exempted — open the battery settings page so user can verify
                     startActivity(new Intent(Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS)
                         .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK));
                     return;
@@ -266,28 +279,14 @@ public class MainActivity extends AppCompatActivity {
 
                 // ── Step 2: Manufacturer-specific Autostart pages ─────────────────────
                 Intent[] candidates = {
-                    // Xiaomi / MIUI
-                    makeIntent("com.miui.securitycenter",
-                        "com.miui.permcenter.autostart.AutoStartManagementActivity"),
-                    // Huawei / EMUI
-                    makeIntent("com.huawei.systemmanager",
-                        "com.huawei.systemmanager.startupmgr.ui.StartupNormalAppListActivity"),
-                    makeIntent("com.huawei.systemmanager",
-                        "com.huawei.systemmanager.optimize.process.ProtectActivity"),
-                    // OPPO / ColorOS
-                    makeIntent("com.coloros.safecenter",
-                        "com.coloros.privacypermissionsentry.PermissionTopActivity"),
-                    makeIntent("com.oppo.safe",
-                        "com.oppo.safe.permission.startup.StartupAppListActivity"),
-                    // Vivo / FuntouchOS
-                    makeIntent("com.vivo.permissionmanager",
-                        "com.vivo.permissionmanager.activity.BgStartUpManagerActivity"),
-                    // Samsung / OneUI
-                    makeIntent("com.samsung.android.lool",
-                        "com.samsung.android.sm.battery.ui.BatteryActivity"),
-                    // Realme
-                    makeIntent("com.realme.permissionmanager",
-                        "com.realme.permissionmanager.ui.AutostartAppListActivity"),
+                    makeIntent("com.miui.securitycenter", "com.miui.permcenter.autostart.AutoStartManagementActivity"),
+                    makeIntent("com.huawei.systemmanager", "com.huawei.systemmanager.startupmgr.ui.StartupNormalAppListActivity"),
+                    makeIntent("com.huawei.systemmanager", "com.huawei.systemmanager.optimize.process.ProtectActivity"),
+                    makeIntent("com.coloros.safecenter", "com.coloros.privacypermissionsentry.PermissionTopActivity"),
+                    makeIntent("com.oppo.safe", "com.oppo.safe.permission.startup.StartupAppListActivity"),
+                    makeIntent("com.vivo.permissionmanager", "com.vivo.permissionmanager.activity.BgStartUpManagerActivity"),
+                    makeIntent("com.samsung.android.lool", "com.samsung.android.sm.battery.ui.BatteryActivity"),
+                    makeIntent("com.realme.permissionmanager", "com.realme.permissionmanager.ui.AutostartAppListActivity"),
                 };
 
                 for (Intent intent : candidates) {
@@ -298,7 +297,6 @@ public class MainActivity extends AppCompatActivity {
                     } catch (Exception ignored) {}
                 }
 
-                // ── Step 3: App Details as final fallback ─────────────────────────────
                 startActivity(new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
                     .setData(pkgUri)
                     .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK));
