@@ -29,25 +29,16 @@ import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.webkit.WebViewAssetLoader;
-import com.google.android.gms.auth.api.signin.GoogleSignIn;
-import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
-import com.google.android.gms.auth.api.signin.GoogleSignInClient;
-import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
-import com.google.android.gms.common.api.ApiException;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
 public class MainActivity extends AppCompatActivity {
-    // Firebase Web Client ID used to request ID token from Google Sign-In SDK.
-    private static final String WEB_CLIENT_ID = "369702806773-ecc5j2fs14ha5pl3rctiv67li7a02e1v.apps.googleusercontent.com";
     private static final String PREFS_NAME = "zeroescape_runtime";
     private static final String KEY_PROTECTED_SESSION_ACTIVE = "protected_session_active";
 
     private WebView webView;
     private DevicePolicyManager devicePolicyManager;
     private ComponentName adminComponent;
-    private GoogleSignInClient googleSignInClient;
-    private ActivityResultLauncher<Intent> googleSignInLauncher;
     private ActivityResultLauncher<Intent> deviceAdminLauncher;
     private ActivityResultLauncher<Intent> contactPickerLauncher;
 
@@ -419,22 +410,6 @@ public class MainActivity extends AppCompatActivity {
         }
 
         @JavascriptInterface
-        public void startGoogleSignIn() {
-            runOnUiThread(() -> {
-                if (googleSignInClient == null) {
-                    emitGoogleSignInResult("error", "native_not_initialized");
-                    return;
-                }
-
-                // Force sign out from both Google and Firebase state to clear any cached errors
-                googleSignInClient.signOut().addOnCompleteListener(MainActivity.this, task -> {
-                    Intent signInIntent = googleSignInClient.getSignInIntent();
-                    googleSignInLauncher.launch(signInIntent);
-                });
-            });
-        }
-
-        @JavascriptInterface
         public void makeEmergencyCall(String phoneNumber) {
             runOnUiThread(() -> {
                 try {
@@ -471,12 +446,10 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        initGoogleSignIn();
+        initActivityLaunchers();
 
         devicePolicyManager = (DevicePolicyManager) getSystemService(Context.DEVICE_POLICY_SERVICE);
         adminComponent = new ComponentName(this, ZeroEscapeDeviceAdmin.class);
-
-        checkGooglePlayServices();
 
         webView = new WebView(this);
         webView.setBackgroundColor(Color.parseColor("#020617"));
@@ -555,42 +528,7 @@ public class MainActivity extends AppCompatActivity {
         return -1L;
     }
 
-    private void initGoogleSignIn() {
-        GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
-            .requestIdToken(WEB_CLIENT_ID)
-            .requestEmail()
-            .build();
-
-        googleSignInClient = GoogleSignIn.getClient(this, gso);
-
-        googleSignInLauncher = registerForActivityResult(
-            new ActivityResultContracts.StartActivityForResult(),
-            result -> {
-                if (result.getData() == null) {
-                    emitGoogleSignInResult("error", "native_cancelled");
-                    return;
-                }
-
-                try {
-                    GoogleSignInAccount account = GoogleSignIn
-                        .getSignedInAccountFromIntent(result.getData())
-                        .getResult(ApiException.class);
-
-                    String idToken = account != null ? account.getIdToken() : null;
-                    if (idToken == null || idToken.isEmpty()) {
-                        emitGoogleSignInResult("error", "native_missing_id_token");
-                        return;
-                    }
-
-                    emitGoogleSignInResult("success", idToken);
-                } catch (ApiException e) {
-                    emitGoogleSignInResult("error", "native_api_error_" + e.getStatusCode());
-                } catch (Exception e) {
-                    emitGoogleSignInResult("error", "native_unknown_error");
-                }
-            }
-        );
-
+    private void initActivityLaunchers() {
         // Launcher for Device Admin activation dialog
         deviceAdminLauncher = registerForActivityResult(
             new ActivityResultContracts.StartActivityForResult(),
@@ -636,21 +574,6 @@ public class MainActivity extends AppCompatActivity {
         webView.post(() -> webView.evaluateJavascript(script, null));
     }
 
-    private void emitGoogleSignInResult(String status, String payload) {
-        if (webView == null) return;
-
-        String safeStatus = JSONObject.quote(status == null ? "error" : status);
-        String safePayload = JSONObject.quote(payload == null ? "" : payload);
-
-        String script = "(function(){" +
-            "if(typeof window.onAndroidGoogleSignIn==='function'){" +
-            "window.onAndroidGoogleSignIn(" + safeStatus + "," + safePayload + ");" +
-            "}" +
-            "})();";
-
-        webView.post(() -> webView.evaluateJavascript(script, null));
-    }
-
     /**
      * Re-enters immersive mode whenever the window regains focus during an active session.
      * This fires after: status-bar swipe, recent-apps return, notification panel collapse.
@@ -670,19 +593,6 @@ public class MainActivity extends AppCompatActivity {
             "(function(){ if(typeof window.onAndroidBack==='function') window.onAndroidBack(); })();",
             null
         );
-    }
-
-    /** Warn the user if Google Play Services is missing */
-    private void checkGooglePlayServices() {
-        try {
-            getPackageManager().getPackageInfo("com.google.android.gms", 0);
-        } catch (PackageManager.NameNotFoundException e) {
-            Toast.makeText(
-                this,
-                "تحذير: خدمات Google Play غير متوفرة. بعض الميزات قد لا تعمل.",
-                Toast.LENGTH_LONG
-            ).show();
-        }
     }
 
     /**
@@ -706,4 +616,3 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 }
-

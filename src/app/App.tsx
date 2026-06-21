@@ -219,13 +219,6 @@ export default function App() {
   useEffect(() => {
     setLoading(true);
 
-    // Handle Google redirect sign-in result (used on Android WebView)
-    authService.handleGoogleRedirectResult().then((redirectUser) => {
-      if (redirectUser) {
-        setUser(redirectUser);
-      }
-    });
-
     const unsubscribe = authService.subscribeToAuthChanges((firebaseUser) => {
       const persistedUser = useAuthStore.getState().user;
 

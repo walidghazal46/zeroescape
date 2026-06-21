@@ -72,9 +72,7 @@ export function SettingsScreen() {
   const currentPlan = user?.currentPlan ? SUBSCRIPTION_PLANS.find(p => p.id === user.currentPlan) : null;
 
   const performLogout = async () => {
-    if (user?.type === 'google') {
-      await authService.logout();
-    }
+    await authService.logout();
     logout();
     navigate('/login');
   };

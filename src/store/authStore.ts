@@ -10,7 +10,7 @@ export const REGISTERED_TRIAL_DAYS = 7;
 
 export type AccountStatus =
   | 'guest_trial'        // Guest user within 3-day trial
-  | 'registered_trial'   // Email/Google user within 7-day trial
+  | 'registered_trial'   // Email user within 7-day trial
   | 'active'             // Has active subscription
   | 'expired'            // Trial or subscription has expired
   | 'suspended';         // Admin-suspended account
@@ -21,7 +21,7 @@ export interface User {
   id: string;
   email: string | null;
   name: string | null;
-  type: 'google' | 'email' | 'guest';
+  type: 'email' | 'guest';
   deviceId: string;
   createdAt: number;
   isAdmin?: boolean;

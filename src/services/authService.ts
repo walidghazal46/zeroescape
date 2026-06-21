@@ -3,12 +3,7 @@ import {
   type AuthError,
   onAuthStateChanged,
   signInAnonymously,
-  signInWithCredential,
   signInWithEmailAndPassword,
-  signInWithPopup,
-  signInWithRedirect,
-  getRedirectResult,
-  GoogleAuthProvider,
   signOut,
   type User as FirebaseAuthUser,
 } from 'firebase/auth';
@@ -17,10 +12,6 @@ import { doc, setDoc, getDoc, serverTimestamp, enableNetwork } from 'firebase/fi
 import { User, ADMIN_EMAIL, REGISTERED_TRIAL_DAYS, GUEST_TRIAL_DAYS, type AccountStatus } from '../store/authStore';
 import { subscriptionService } from './subscriptionService';
 
-const googleProvider = new GoogleAuthProvider();
-googleProvider.addScope('profile');
-googleProvider.addScope('email');
-
 /** Returns true when running inside an Android WebView (no real browser engine) */
 const isAndroidWebView = (): boolean => {
   const ua = navigator.userAgent || '';
@@ -28,26 +19,8 @@ const isAndroidWebView = (): boolean => {
   return /Android.*wv/.test(ua) || typeof (window as any).Android !== 'undefined';
 };
 
-const shouldUseGoogleRedirect = (): boolean => {
-  const localPreviewHosts = new Set(['localhost', '127.0.0.1', '::1']);
-  return localPreviewHosts.has(window.location.hostname);
-};
-
-type AndroidBridge = {
-  startGoogleSignIn?: () => void;
-};
-
-type AndroidWindow = Window & {
-  Android?: AndroidBridge;
-  onAndroidGoogleSignIn?: (status: string, payload: string) => void;
-};
-
 const getUserTypeFromProvider = (firebaseUser: FirebaseAuthUser): User['type'] => {
   const providerIds = firebaseUser.providerData.map((p) => p.providerId);
-
-  if (providerIds.includes('google.com')) {
-    return 'google';
-  }
 
   if (providerIds.includes('password')) {
     return 'email';
@@ -227,83 +200,6 @@ export const authService = {
     }
 
     return fallbackUser;
-  },
-
-  signInWithGoogle: async (): Promise<User> => {
-    try {
-      if (isAndroidWebView()) {
-        const androidWindow = window as AndroidWindow;
-        const bridge = androidWindow.Android;
-
-        if (bridge && bridge.startGoogleSignIn) {
-          return await new Promise<User>((resolve, reject) => {
-            let settled = false;
-
-            const cleanup = () => {
-              androidWindow.onAndroidGoogleSignIn = undefined;
-            };
-
-            // Timeout after 60 seconds to prevent infinite hang
-            const timeoutId = setTimeout(() => {
-              if (settled) return;
-              settled = true;
-              cleanup();
-              reject(Object.assign(new Error('Google sign-in timed out.'), { code: 'auth/google-signin-timeout' }));
-            }, 60_000);
-
-            androidWindow.onAndroidGoogleSignIn = async (status: string, payload: string) => {
-              if (settled) return;
-              settled = true;
-              clearTimeout(timeoutId);
-              cleanup();
-
-              if (status !== 'success' || !payload) {
-                reject(Object.assign(new Error('Native Google sign-in failed.'), { code: payload || 'auth/google-native-failed' }));
-                return;
-              }
-
-              try {
-                const credential = GoogleAuthProvider.credential(payload);
-                const result = await signInWithCredential(auth, credential);
-                resolve(await authService.normalizeFirebaseUser(result.user));
-              } catch (error) {
-                reject(error);
-              }
-            };
-
-            bridge.startGoogleSignIn();
-          });
-        }
-
-        // Fallback when native bridge is not available in this Android build.
-        throw Object.assign(new Error('Native Google sign-in bridge is unavailable.'), { code: 'auth/google-webview-not-supported' });
-      }
-
-      if (shouldUseGoogleRedirect()) {
-        await signInWithRedirect(auth, googleProvider);
-        throw Object.assign(new Error('Google redirect initiated.'), { code: 'auth/redirect-initiated' });
-      }
-
-      const result = await signInWithPopup(auth, googleProvider);
-      return authService.normalizeFirebaseUser(result.user);
-    } catch (error) {
-      console.error('Google sign-in error:', error);
-      throw error;
-    }
-  },
-
-  /** Call this once on app startup to capture the result of a Google redirect sign-in */
-  handleGoogleRedirectResult: async (): Promise<User | null> => {
-    try {
-      const result = await getRedirectResult(auth);
-      if (result?.user) {
-        return authService.normalizeFirebaseUser(result.user);
-      }
-      return null;
-    } catch (error) {
-      console.error('Google redirect result error:', error);
-      return null;
-    }
   },
 
   signUpWithEmail: async (name: string, email: string, password: string, emergencyPin?: string): Promise<User> => {

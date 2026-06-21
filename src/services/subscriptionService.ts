@@ -61,7 +61,7 @@ export interface UserDoc {
   id: string;
   email: string | null;
   name: string | null;
-  type: 'google' | 'email' | 'guest';
+  type: 'email' | 'guest';
   deviceId: string;
   accountStatus: AccountStatus;
   trialStartAt: number | null;
