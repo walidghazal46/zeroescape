@@ -214,28 +214,13 @@ export const useAuthStore = create<AuthStore>()(
       getAccountStatus: (): AccountStatus => {
         const { user } = get();
         if (!user) return 'expired';
-        if (user.isAdmin) return 'active'; // admin always active
-        if (user.accountStatus === 'suspended') return 'suspended';
-
-        // Active paid subscription?
-        if (user.subscriptionEndAt && Date.now() < user.subscriptionEndAt) {
-          return 'active';
-        }
-
-        // On trial?
-        const trialEnd = user.trialEndAt ?? user.guestExpiresAt;
-        if (trialEnd && Date.now() < trialEnd) {
-          return user.type === 'guest' ? 'guest_trial' : 'registered_trial';
-        }
-
-        return 'expired';
+        return 'active'; // FREE FOR NOW: Force active status for all users
       },
 
       hasAccess: (): boolean => {
         const { user } = get();
         if (!user) return false;
-        const status = get().getAccountStatus();
-        return status === 'active' || status === 'guest_trial' || status === 'registered_trial';
+        return true; // FREE FOR NOW: Everyone has access
       },
 
       trialDaysLeft: (): number => {

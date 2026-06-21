@@ -72,7 +72,7 @@ function MobileOnlyGuard({ children }: { children: ReactNode }) {
       {/* Headline */}
       <div className="space-y-2">
         <h1 className="text-white text-3xl font-bold tracking-tight">ZeroEscape No.1</h1>
-        <p className="text-sky-400 text-sm font-medium tracking-wide uppercase">#1 في منع الإباحية وإدمان الموبايل</p>
+        <p className="text-sky-400 text-sm font-medium tracking-wide uppercase">#1 في تعزيز التركيز وإدمان الموبايل</p>
       </div>
 
       {/* Features */}
@@ -81,7 +81,7 @@ function MobileOnlyGuard({ children }: { children: ReactNode }) {
           { icon: '�️', title: 'حجب المواقع الإباحية', desc: 'يحجب المحتوى الإباحي تلقائياً أثناء الجلسة ويمنع الوصول إليه بشكل فعّال.' },
           { icon: '📵', title: 'تحرر من إدمان الموبايل', desc: 'يقطع الوصول للتطبيقات المشتتة ويمنعك من فتحها — انضباط حقيقي لا مجرد رغبة.' },
           { icon: '🔒', title: 'جلسات محمية لا يمكن الخروج منها', desc: 'وضع حماية متكامل يُغلق الموبايل على التطبيق حتى تنتهي الجلسة.' },
-          { icon: '🎯', title: 'خطة شخصية لكل هدف', desc: 'حدد هدفك: دراسة · عمل · نوم · إدمان — وسيُخصص التطبيق الخطة تلقائياً.' },
+          { icon: '🎯', title: 'خطة شخصية لكل هدف', desc: 'حدد هدفك: دراسة · عمل · نوم · تركيز — وسيُخصص التطبيق الخطة تلقائياً.' },
         ].map(({ icon, title, desc }) => (
           <div key={title} className="flex items-start gap-3 bg-slate-900/60 border border-slate-800 rounded-2xl px-4 py-3">
             <span className="text-xl mt-0.5 flex-shrink-0">{icon}</span>
@@ -97,7 +97,7 @@ function MobileOnlyGuard({ children }: { children: ReactNode }) {
       <div className="w-full max-w-sm bg-blue-500/10 border border-blue-500/20 rounded-2xl px-5 py-4 text-right space-y-1">
         <p className="text-blue-400 text-sm font-semibold">💡 لماذا هو الأول؟</p>
         <p className="text-slate-400 text-xs leading-relaxed">
-          لأنه لا يكتفي بالتحذير — بل يُغلق الباب أمام الإباحية وإدمان الموبايل بشكل فعلي، دون الاعتماد على الإرادة فقط.
+          لأنه لا يكتفي بالتحذير — بل يُغلق الباب أمام المشتتات وإدمان الموبايل بشكل فعلي، دون الاعتماد على الإرادة فقط.
         </p>
       </div>
 

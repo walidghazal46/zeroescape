@@ -166,7 +166,7 @@ export function SplashScreen() {
         className="text-center px-10"
         style={{ fontSize: 'var(--text-sm)', color: '#6b8079', lineHeight: 1.6 }}
       >
-        التطبيق الأول في منع الإباحية وإدمان الموبايل
+        التطبيق الأول في تعزيز التركيز وإدمان الموبايل
       </motion.p>
 
       {/* ── Gold progress shimmer bar ── */}
