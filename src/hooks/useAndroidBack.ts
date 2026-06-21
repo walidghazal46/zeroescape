@@ -5,17 +5,9 @@ import { useLocation, useNavigate } from 'react-router-dom';
  * Routes where pressing the Android back button should prompt the user
  * to exit the app instead of navigating backwards.
  */
-const EXIT_ROUTES = new Set(['/', '/home', '/login']);
+const ROOT_ROUTES = new Set(['/', '/home', '/login', '/schedule', '/blocked-apps', '/settings']);
 const SESSION_LOCKED_ROUTES = new Set(['/active-session', '/emergency-exit']);
 
-/**
- * Registers window.onAndroidBack so MainActivity can call it when the
- * Android hardware/gesture back button is pressed.
- *
- * - On non-root screens  → navigate one step back (React Router history)
- * - On root/home screens → call window.Android.showExitDialog() (native dialog)
- *                          or fall back to an in-app confirmation overlay.
- */
 export function useAndroidBack(): {
   showExitDialog: boolean;
   dismissExitDialog: () => void;
@@ -31,9 +23,17 @@ export function useAndroidBack(): {
     }
 
     (window as any).onAndroidBack = () => {
-      if (EXIT_ROUTES.has(location.pathname)) {
+      // If we are on one of the main tabs (except home), go back to home first
+      if (['/schedule', '/blocked-apps', '/settings'].includes(location.pathname)) {
+        navigate('/home');
+        return;
+      }
+
+      // If we are on Home, Login or Splash, show exit confirmation
+      if (['/', '/home', '/login'].includes(location.pathname)) {
         setShowExitDialog(true);
       } else {
+        // For sub-pages (like adding a schedule), just go back one step
         navigate(-1);
       }
     };

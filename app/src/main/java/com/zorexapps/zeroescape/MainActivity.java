@@ -125,6 +125,11 @@ public class MainActivity extends AppCompatActivity {
             );
         }
 
+        @JavascriptInterface
+        public void exitApp() {
+            runOnUiThread(() -> finishAffinity());
+        }
+
         // ── Schedule bridge ──────────────────────────────────────────────────────
 
         /**
