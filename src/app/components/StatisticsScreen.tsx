@@ -1,6 +1,6 @@
 import { useNavigate } from 'react-router-dom';
-import { ChevronRight, Clock, Flame, TrendingUp, AlertTriangle, Target, ShieldCheck } from 'lucide-react';
-import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, Cell } from 'recharts';
+import { ChevronRight, Clock, Flame, TrendingUp, AlertTriangle, Target, ShieldCheck, AreaChart as AreaChartIcon } from 'lucide-react';
+import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, Cell, AreaChart, Area, Tooltip, CartesianGrid } from 'recharts';
 import { useSessionStore } from '../../store/sessionStore';
 import { useAnalyticsStore } from '../../store/analyticsStore';
 import { usePreferencesStore } from '../../store/preferencesStore';
@@ -12,6 +12,14 @@ function formatHour(hour: number): string {
   if (hour === 12) return '12ظ';
   return `${hour - 12}م`;
 }
+
+const modeLabels = {
+  study: 'دراسة',
+  work: 'عمل',
+  sleep: 'نوم',
+  deep_detox: 'ديتوكس',
+  custom: 'مخصص',
+};
 
 export function StatisticsScreen() {
   const navigate = useNavigate();
@@ -42,6 +50,16 @@ export function StatisticsScreen() {
   const prevWeekHours = prevWeekSessions.reduce((sum, s) => sum + s.durationMinutes / 60, 0);
   const trend = prevWeekHours > 0 ? Math.round(((totalHours - prevWeekHours) / prevWeekHours) * 100) : null;
   const peakHourData = [...hourlyData].sort((a, b) => b.count - a.count)[0];
+
+  // Distribution of session modes
+  const modeDistribution = completedSessions.reduce((acc: Record<string, number>, s) => {
+    acc[s.mode] = (acc[s.mode] || 0) + 1;
+    return acc;
+  }, {});
+  const modeData = Object.entries(modeDistribution).map(([mode, count]) => ({
+    name: modeLabels[mode as keyof typeof modeLabels] || mode,
+    count
+  }));
 
   return (
     <div
@@ -105,6 +123,28 @@ export function StatisticsScreen() {
               ))}
             </Bar>
           </BarChart>
+        </ResponsiveContainer>
+      </div>
+
+      <div className="bg-card border border-border rounded-xl p-4 mb-5">
+        <h3 className="text-foreground text-sm font-medium mb-4">توزيع أنماط التركيز</h3>
+        <ResponsiveContainer width="100%" height={180}>
+          <AreaChart data={modeData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+            <defs>
+              <linearGradient id="colorCount" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="5%" stopColor="#8b5cf6" stopOpacity={0.3}/>
+                <stop offset="95%" stopColor="#8b5cf6" stopOpacity={0}/>
+              </linearGradient>
+            </defs>
+            <CartesianGrid strokeDasharray="3 3" stroke="#334155" vertical={false} />
+            <XAxis dataKey="name" stroke="#94a3b8" style={{ fontSize: '11px' }} />
+            <YAxis stroke="#94a3b8" style={{ fontSize: '11px' }} />
+            <Tooltip
+              contentStyle={{ backgroundColor: '#1e293b', border: 'none', borderRadius: '12px', fontSize: '12px', color: '#fff' }}
+              itemStyle={{ color: '#a78bfa' }}
+            />
+            <Area type="monotone" dataKey="count" stroke="#8b5cf6" fillOpacity={1} fill="url(#colorCount)" strokeWidth={3} />
+          </AreaChart>
         </ResponsiveContainer>
       </div>
 
