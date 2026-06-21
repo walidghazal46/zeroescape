@@ -1,8 +1,9 @@
 import { useNavigate } from 'react-router-dom';
-import { ChevronRight, Instagram, MessageCircle, Twitter, Youtube, Music, Gamepad2 } from 'lucide-react';
+import { ChevronRight, Instagram, MessageCircle, Twitter, Youtube, Music, Gamepad2, Facebook } from 'lucide-react';
 import { useSessionStore } from '../../store/sessionStore';
 
 const apps = [
+  { id: 'facebook', icon: Facebook, name: 'Facebook', color: 'text-blue-600' },
   { id: 'instagram', icon: Instagram, name: 'Instagram', color: 'text-pink-400' },
   { id: 'whatsapp', icon: MessageCircle, name: 'WhatsApp', color: 'text-green-400' },
   { id: 'twitter', icon: Twitter, name: 'Twitter', color: 'text-blue-400' },
